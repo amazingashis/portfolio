@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback, RefObject } from "react";
 import { useScroll, useTransform, useMotionValueEvent } from "framer-motion";
-import Image from "next/image";
+import NextImage from "next/image";
 
 const FRAME_COUNT = 120;
 const EAGER_FRAMES = 20;
@@ -116,7 +116,7 @@ export default function ScrollyCanvas({ containerRef }: Props) {
         It hides once the canvas has its first frames ready to render.
       */}
       <div className={`absolute inset-0 transition-opacity duration-1000 ${ready ? 'opacity-0' : 'opacity-100'}`}>
-        <Image
+        <NextImage
           src={currentFrame(0)}
           alt="Loading Animation..."
           fill
