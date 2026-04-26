@@ -15,15 +15,15 @@ export default function Overlay({ containerRef }: Props) {
     offset: ["start start", "end end"],
   });
 
-  // ── Section 1: Hero (0% → 12% → 22%) ──────────────────────────────
+  // ── Section 1: Hero (0% → 10% → 18%) ──────────────────────────────
   // Fully visible at start, fades out cleanly before section 2 appears.
-  const opacity1 = useTransform(scrollYProgress, [0, 0.12, 0.22], [1, 1, 0]);
-  const y1 = useTransform(scrollYProgress, [0, 0.22], [0, -80]);
+  const opacity1 = useTransform(scrollYProgress, [0, 0.10, 0.18], [1, 1, 0]);
+  const y1 = useTransform(scrollYProgress, [0, 0.18], [0, -80]);
 
-  // ── Section 2: "Building scalable data pipelines" (28% → 52% → 62%) ─
+  // ── Section 2: "Building scalable data pipelines" (30% → 52% → 62%) ─
   // Fades in after section 1 is fully gone, holds, then fades out.
-  const opacity2 = useTransform(scrollYProgress, [0.28, 0.38, 0.52, 0.62], [0, 1, 1, 0]);
-  const y2 = useTransform(scrollYProgress, [0.28, 0.62], [80, -80]);
+  const opacity2 = useTransform(scrollYProgress, [0.30, 0.40, 0.52, 0.62], [0, 1, 1, 0]);
+  const y2 = useTransform(scrollYProgress, [0.30, 0.62], [80, -80]);
 
   // ── Section 3: "Architecting intelligent systems" (68% → 90% → 97%) ─
   // Fades in after section 2 is fully gone, holds until end of canvas.
