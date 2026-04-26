@@ -1,0 +1,89 @@
+Ashish Adhikari
+Senior Software Engineer | POKHARA, Nepal, Pokhara - 13, 33700
+# ashishadhikari481@gmail.com | H +977 9846420481 | ï linkedin.com/in/ashish-adhikari01
+Summary
+Data Engineer specializing in building scalable ETL/ELT pipelines, data warehousing, and analytics enablement across
+AWS and Databricks ecosystems. Experienced with US healthcare data standardization, medallion architecture, event-
+driven/serverless orchestration (AWS Lambda, EventBridge), and publishing curated datasets to Snowflake/Redshift/BigQuery.
+Focused on robust data modeling, performance optimization, security, governance, and reliable orchestration using AWS
+Glue/Airflow/EventBridge.
+Skills
+Languages: Python, C, C++, R, SQL
+Libraries: PySpark, Kafka, Pandas, NumPy
+ETL: AWS Glue, Airflow, Databricks ETL
+Data Warehouse: Snowflake, AWS Redshift, Google BigQuery, Databricks SQL
+Data Lake: Databricks Data Lakehouse, AWS Data Lake
+BI & Analytics: MatPlotLib, PowerBI, Tableau, QuickSight, Databricks BI
+Database: Amazon RDS, PostgreSQL, MSSQL, MySQL, SQLite, MongoDB, DynamoDB, Stored Procedures
+Cloud: AWS, IAM, EC2, Lambda, S3, Glue, Athena, Azure, Databricks
+Version Control: Git, GitHub, Bitbucket, AWS CodeCommit
+Project Management: Jira, Redmine
+AI: AI Agents, RAG, LLM, Task Automation, ChatBots
+Work Experience
+Senior Software Engineer
+Abacus Insights, Boston, USA (Remote)
+Jul 2025
+• Designed and maintained large-scale batch data pipelines in Databricks on AWS to standardize US healthcare datasets
+across sources.
+• Implemented medallion architecture (Bronze/Silver/Gold) with Delta Lake, including SCD handling and incremental
+processing.
+• Orchestrated and monitored jobs using AWS Glue and Airflow; leveraged EventBridge schedules and S3 event triggers;
+used Lambda for lightweight pre/post-processing (schema checks, manifests).
+• Published curated tables to Snowflake for downstream analytics and enabled reliable data delivery to consumers.
+Senior Data Engineer
+Cedar Gate Technologies, LLC, Greenwich, CT, USA (Remote)
+Oct 2024 – Jun 2025
+• Developed an AWS Redshift data warehouse, enabling storage of 10M+ healthcare records annually and improving
+query performance by 30%, reducing reporting delays by 70%.
+• Built ETL jobs to transform claims and eligibility data; optimized SQL using distribution/sort keys and workload
+management.
+• Automated pipelines with AWS Glue and Airflow; added EventBridge-driven schedules and Lambda utilities for file
+validation and notifications; implemented data quality checkpoints.
+Data Engineer
+Cedar Gate Technologies, LLC, Greenwich, CT, USA (Remote)
+Jan 2023 – Oct 2024
+• Engineered robust ETL pipelines processing 500K+ healthcare claims daily.
+• Designed and implemented data validation frameworks, reducing data quality issues by 85% through automated checks.
+• Collaborated with cross-functional teams to deliver data solutions, improving operational efficiency by 25%.
+Associate Data Engineer
+Cedar Gate Technologies, LLC, Greenwich, CT, USA (Remote)
+Jan 2022 – Dec 2022
+• Assisted in developing data processing workflows and maintained data quality standards for healthcare datasets.
+• Contributed to SQL optimization efforts and database performance tuning initiatives.
+• Supported senior engineers in implementing data governance policies and documentation standards.
+Remote AI/ML Specialist
+Clevero, Melbourne
+Oct 2021 – Jan 2022
+• Assessed ML implementation for Clevero applications, reducing decision lead time by 40% and accelerating deployment
+cycles by 50%.
+Education
+The Julius Maximilians University of W¨urzburg
+2020 – 2022
+Bachelor’s Degree, Major, Online Float, Germany
+Kathmandu University
+2017 – 2022
+B.E. in Computer Engineering, Dhulikhel, Nepal
+CGPA: 3.72
+Honors and Awards
+• Winner, Abacus Insights Internal Hackathon — November 2025
+• World Finalist, Microsoft Imagine Cup 2021 - Earth Category Runner Up. Project Details
+• Featured in MongoDB Students Spotlights - Student project showcase. MongoDB Learn
+• Hack-O-Lantern Hackathon Winner - First place in competitive programming event
+• Winner, Project Competition in LOCUS 2020 - Institute of Engineering (IOE), Pulchowk Campus
+• Winner, CanSat Competition in Aavishkar 19 - Kathmandu University, Dhulikhel, Nepal
+• Winner, ICT Meetup V6.0 Project Demonstration - Prime IT, Kathmandu, Nepal
+• Winner, AI Gaming KU - Kathmandu University artificial intelligence competition
+Certifications
+• Databricks Certified Data Engineer Associate (Databricks) — Issued Mar 2026; expires Mar 2028. Credential
+ID: 178029387
+• Python for Data Science and AI (Coursera, IBM)
+• Machine Learning Zero to Hero (Developer Student Clubs)
+• SQL Database (HackerRank)
+• Neural Networks and Deep Learning (deeplearning.ai)
+• Structuring Machine Learning Projects (deeplearning.ai)
+• Ask Questions to Make Data-Driven Decisions (Coursera by Google)
+• Foundations of Data (Coursera by Google)
+• Transfer Learning for NLP with TensorFlow Hub
+Publications
+• ”Generative Adversarial Networks in Anomaly Detection and Malware Detection: A Comprehensive Survey”. DOI:
+10.54569/aair.1442665
