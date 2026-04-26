@@ -15,27 +15,27 @@ export default function Overlay({ containerRef }: Props) {
     offset: ["start start", "end end"],
   });
 
-  // ── Section 1: Hero (0% → 10% → 18%) ──────────────────────────────
-  // Fully visible at start, fades out cleanly before section 2 appears.
-  const opacity1 = useTransform(scrollYProgress, [0, 0.10, 0.18], [1, 1, 0]);
-  const y1 = useTransform(scrollYProgress, [0, 0.18], [0, -80]);
+  // ── Section 1: Hero (0% → 40% → 50%) ──────────────────────────────
+  // Fully visible until frame 60 (50%), then fades out completely.
+  const opacity1 = useTransform(scrollYProgress, [0, 0.40, 0.50], [1, 1, 0]);
+  const y1 = useTransform(scrollYProgress, [0, 0.50], [0, -80]);
 
-  // ── Section 2: "Building scalable data pipelines" (30% → 52% → 62%) ─
-  // Fades in after section 1 is fully gone, holds, then fades out.
-  const opacity2 = useTransform(scrollYProgress, [0.30, 0.40, 0.52, 0.62], [0, 1, 1, 0]);
-  const y2 = useTransform(scrollYProgress, [0.30, 0.62], [80, -80]);
+  // ── Section 2: "Building scalable data pipelines" (55% → 70% → 80%) ─
+  // Fades in AFTER frame 60, holds, then fades out.
+  const opacity2 = useTransform(scrollYProgress, [0.55, 0.65, 0.75, 0.80], [0, 1, 1, 0]);
+  const y2 = useTransform(scrollYProgress, [0.55, 0.80], [80, -80]);
 
-  // ── Section 3: "Architecting intelligent systems" (68% → 90% → 97%) ─
-  // Fades in after section 2 is fully gone, holds until end of canvas.
-  const opacity3 = useTransform(scrollYProgress, [0.68, 0.78, 0.90, 0.97], [0, 1, 1, 0]);
-  const y3 = useTransform(scrollYProgress, [0.68, 0.97], [80, -80]);
+  // ── Section 3: "Architecting intelligent systems" (85% → 95% → 99%) ─
+  // Fades in for the final part of the animation.
+  const opacity3 = useTransform(scrollYProgress, [0.85, 0.92, 0.97, 0.99], [0, 1, 1, 0]);
+  const y3 = useTransform(scrollYProgress, [0.85, 0.99], [80, -80]);
 
   // ── Canvas dimming overlay ────────────────────────────────────────────
   // Darkens the background image when text sections 2 or 3 are active,
   // preventing the canvas frames from competing with the text.
   const canvasDimOpacity = useTransform(
     scrollYProgress,
-    [0.24, 0.32, 0.60, 0.66, 0.74, 0.92, 0.98],
+    [0.50, 0.58, 0.78, 0.82, 0.85, 0.96, 0.99],
     [0,    0.55, 0.55, 0,    0.55, 0.55, 0   ]
   );
 
