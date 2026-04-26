@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback, RefObject } from "react";
 import { useScroll, useTransform, useMotionValueEvent } from "framer-motion";
+import Image from "next/image";
 
 const FRAME_COUNT = 120;
 const EAGER_FRAMES = 20;
@@ -17,12 +18,8 @@ export default function ScrollyCanvas({ containerRef }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imagesRef = useRef<HTMLImageElement[]>(Array(FRAME_COUNT).fill(null));
   const [ready, setReady] = useState(false);
+  const [posterLoaded, setPosterLoaded] = useState(false);
 
-  // Scope scroll progress to the 500vh container only.
-  // offset ["start start", "end end"]:
-  //   progress=0 → top of container at top of viewport
-  //   progress=1 → bottom of container at bottom of viewport
-  // This maps all 120 frames across the full sticky window.
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"],
@@ -46,7 +43,6 @@ export default function ScrollyCanvas({ containerRef }: Props) {
     ctx.drawImage(img, 0, 0, img.width, img.height, cx, cy, img.width * ratio, img.height * ratio);
   }, []);
 
-  // Phase 1 — eagerly load first EAGER_FRAMES for fast first paint
   useEffect(() => {
     let eagerLoaded = 0;
 
@@ -65,7 +61,6 @@ export default function ScrollyCanvas({ containerRef }: Props) {
       };
     }
 
-    // Phase 2 — load the rest in idle-time batches to avoid blocking
     function loadRemainingFrames() {
       let i = EAGER_FRAMES;
       const loadBatch = () => {
@@ -115,7 +110,27 @@ export default function ScrollyCanvas({ containerRef }: Props) {
 
   return (
     <div className="sticky top-0 h-screen w-full overflow-hidden bg-[#000000]">
-      <canvas ref={canvasRef} className="block h-full w-full" />
+      {/* 
+        Poster Image: 
+        This is a Next.js Image that loads immediately (priority). 
+        It hides once the canvas has its first frames ready to render.
+      */}
+      <div className={`absolute inset-0 transition-opacity duration-1000 ${ready ? 'opacity-0' : 'opacity-100'}`}>
+        <Image
+          src={currentFrame(0)}
+          alt="Loading Animation..."
+          fill
+          priority
+          className="object-cover"
+          onLoad={() => setPosterLoaded(true)}
+        />
+      </div>
+
+      {/* Canvas: Only becomes visible when the eager frames are loaded */}
+      <canvas 
+        ref={canvasRef} 
+        className={`block h-full w-full transition-opacity duration-1000 ${ready ? 'opacity-100' : 'opacity-0'}`} 
+      />
     </div>
   );
 }
