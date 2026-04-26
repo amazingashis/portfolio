@@ -18,8 +18,8 @@ export default function Home() {
     <main className="relative w-full min-h-screen bg-[#000000]">
       <Navbar />
 
-      {/* 300vh container for the scroll sequence */}
-      <div ref={canvasContainerRef} className="relative h-[300vh] w-full">
+      {/* 500vh container for the scroll sequence */}
+      <div ref={canvasContainerRef} className="relative h-[500vh] w-full">
         <ScrollyCanvas containerRef={canvasContainerRef} />
         <Overlay containerRef={canvasContainerRef} />
       </div>
