@@ -5,7 +5,6 @@ import Experience from "@/components/Experience";
 import Projects from "@/components/Projects";
 import Achievements from "@/components/Achievements";
 import Certifications from "@/components/Certifications";
-import Gallery from "@/components/Gallery";
 
 export default function Home() {
   return (
@@ -22,7 +21,6 @@ export default function Home() {
       <Projects />
       <Achievements />
       <Certifications />
-      <Gallery />
     </main>
   );
 }

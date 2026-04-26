@@ -12,7 +12,7 @@ export default function Navbar() {
     <motion.nav 
       initial={{ y: -100 }}
       animate={{ y: 0 }}
-      className="fixed top-0 left-0 w-full z-50 px-6 py-4 flex justify-between items-center bg-black/50 backdrop-blur-md border-b border-white/10"
+      className="relative w-full z-50 px-6 py-4 flex justify-between items-center bg-black/50 backdrop-blur-md border-b border-white/10"
     >
       <Link href="/" className="text-white font-bold text-xl tracking-tighter">
         AA.
@@ -26,7 +26,6 @@ export default function Navbar() {
             <a href="#projects" className="hover:text-white transition-colors">Projects</a>
             <a href="#achievements" className="hover:text-white transition-colors">Achievements</a>
             <a href="#certifications" className="hover:text-white transition-colors">Certifications</a>
-            <a href="#gallery" className="hover:text-white transition-colors">Gallery</a>
           </>
         ) : (
           <Link href="/" className="hover:text-white transition-colors">Home</Link>

@@ -10,8 +10,8 @@ const certs = [
   { id: 4, title: "IBM Python for Data Science", src: "/certiications/IBM Python for Data Science certification.PNG" },
   { id: 5, title: "Ask Questions to Make Data-Driven Decisions", src: "/certiications/ask data driven certification.PNG" },
   { id: 6, title: "HackerRank SQL", src: "/certiications/hacker rank sql certification.PNG" },
-  { id: 7, title: "Neural Networks & DL", src: "/certiications/Screenshot_20200514-114857_Drive.jpg" },
-  { id: 8, title: "Structuring ML Projects", src: "/certiications/Screenshot_20200522-104722_Drive.jpg" },
+  { id: 7, title: "Neural Networks & DL", src: "/certiications/deeplearning certification.jpg" },
+  { id: 8, title: "Structuring ML Projects", src: "/certiications/structuring machine learning projects certification.jpg" },
 ];
 
 export default function Certifications() {
@@ -40,9 +40,10 @@ export default function Certifications() {
               className="group relative rounded-xl overflow-hidden border border-white/10 bg-white/5 backdrop-blur-sm aspect-[4/3]"
             >
               <Image 
-                src={item.src} 
+                src={encodeURI(item.src)} 
                 alt={item.title} 
                 fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                 className="object-contain p-2 group-hover:scale-105 transition-transform duration-500"
               />
               <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center pointer-events-none p-4">
