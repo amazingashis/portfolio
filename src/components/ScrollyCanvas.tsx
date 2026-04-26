@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback, RefObject } from "react";
 import { useScroll, useTransform, useMotionValueEvent } from "framer-motion";
 
-const FRAME_COUNT = 120;
+const FRAME_COUNT = 60;
 const EAGER_FRAMES = 20;
 
 const currentFrame = (index: number) =>
