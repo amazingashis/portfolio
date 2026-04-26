@@ -1,29 +1,41 @@
 "use client";
 
+import { RefObject } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 
-export default function Overlay() {
-  const { scrollYProgress } = useScroll();
+interface Props {
+  containerRef: RefObject<HTMLDivElement | null>;
+}
 
-  // Section 1 — Hero (visible 0→8%, fades out cleanly by 16%)
-  const opacity1 = useTransform(scrollYProgress, [0, 0.08, 0.16], [1, 1, 0]);
-  const y1 = useTransform(scrollYProgress, [0, 0.16], [0, -80]);
+export default function Overlay({ containerRef }: Props) {
+  // Same container-scoped scroll as ScrollyCanvas so text timings
+  // align perfectly with the frame animation across the full 500vh window.
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end end"],
+  });
 
-  // Section 2 — "Building scalable data pipelines"
-  // Starts fading in AFTER section 1 is fully gone (0.20), peaks at 0.30, out by 0.40
-  const opacity2 = useTransform(scrollYProgress, [0.20, 0.28, 0.38, 0.44], [0, 1, 1, 0]);
-  const y2 = useTransform(scrollYProgress, [0.20, 0.44], [80, -80]);
+  // ── Section 1: Hero (0% → 12% → 22%) ──────────────────────────────
+  // Fully visible at start, fades out cleanly before section 2 appears.
+  const opacity1 = useTransform(scrollYProgress, [0, 0.12, 0.22], [1, 1, 0]);
+  const y1 = useTransform(scrollYProgress, [0, 0.22], [0, -80]);
 
-  // Section 3 — "Architecting intelligent systems"
-  // Starts after section 2 is fully gone (0.50), peaks at 0.60, out by 0.72
-  const opacity3 = useTransform(scrollYProgress, [0.50, 0.58, 0.68, 0.74], [0, 1, 1, 0]);
-  const y3 = useTransform(scrollYProgress, [0.50, 0.74], [80, -80]);
+  // ── Section 2: "Building scalable data pipelines" (28% → 52% → 62%) ─
+  // Fades in after section 1 is fully gone, holds, then fades out.
+  const opacity2 = useTransform(scrollYProgress, [0.28, 0.38, 0.52, 0.62], [0, 1, 1, 0]);
+  const y2 = useTransform(scrollYProgress, [0.28, 0.62], [80, -80]);
 
-  // Canvas dimming overlay — darkens the background when sections 2 or 3 are active
-  // so the text has clean contrast and doesn't visually clash with the image frames
+  // ── Section 3: "Architecting intelligent systems" (68% → 90% → 97%) ─
+  // Fades in after section 2 is fully gone, holds until end of canvas.
+  const opacity3 = useTransform(scrollYProgress, [0.68, 0.78, 0.90, 0.97], [0, 1, 1, 0]);
+  const y3 = useTransform(scrollYProgress, [0.68, 0.97], [80, -80]);
+
+  // ── Canvas dimming overlay ────────────────────────────────────────────
+  // Darkens the background image when text sections 2 or 3 are active,
+  // preventing the canvas frames from competing with the text.
   const canvasDimOpacity = useTransform(
     scrollYProgress,
-    [0.18, 0.26, 0.40, 0.48, 0.56, 0.70, 0.76],
+    [0.24, 0.32, 0.60, 0.66, 0.74, 0.92, 0.98],
     [0,    0.55, 0.55, 0,    0.55, 0.55, 0   ]
   );
 
@@ -31,7 +43,7 @@ export default function Overlay() {
     <div className="absolute top-0 left-0 h-full w-full pointer-events-none z-10">
       <div className="sticky top-0 h-screen w-full flex flex-col justify-center px-6 md:px-24 overflow-hidden">
 
-        {/* Canvas dimming layer — sits above the canvas, below all text */}
+        {/* Canvas dimming layer */}
         <motion.div
           style={{ opacity: canvasDimOpacity }}
           className="absolute inset-0 bg-black"
