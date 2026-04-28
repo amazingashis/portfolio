@@ -18,7 +18,7 @@ const categories = [
     accent: "text-cyan-400",
     tagBorder: "border-cyan-500/20 text-cyan-400 bg-cyan-500/5",
     tags: ["Databricks", "Snowflake", "AWS Redshift", "Delta Lake"],
-    href: "/projects#data-engineering",
+    href: "/projects/data-engineering",
   },
   {
     id: "ai-engineering",
@@ -33,7 +33,7 @@ const categories = [
     accent: "text-violet-400",
     tagBorder: "border-violet-500/20 text-violet-400 bg-violet-500/5",
     tags: ["Knowledge Graphs", "LLM Tooling", "Open Source", "Agents"],
-    href: "/projects#ai-engineering",
+    href: "/projects/ai-engineering",
   },
 ];
 
