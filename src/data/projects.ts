@@ -185,9 +185,9 @@ export const aiEngineeringProjects: Project[] = [
     title: "Graphify",
     category: "Open Source · AI Coding Assistant Skill",
     summary:
-      "An AI coding assistant skill that turns any folder of code, docs, papers, images, or videos into a queryable knowledge graph — delivering 71.5× fewer tokens per query vs reading raw files. Works in Claude Code, Cursor, Codex, Gemini CLI, and more.",
+      "An open-source AI coding assistant skill that turns any folder of code, docs, papers, images, or videos into a queryable knowledge graph. Personally tested and validated — reduces token usage by ~50% in large codebases. Works in Claude Code, Cursor, Codex, Gemini CLI, and more.",
     fullDescription:
-      "Graphify is an AI coding assistant skill that reads your files, builds a knowledge graph, and gives you back structure you didn't know was there. Type /graphify in Claude Code, Cursor, Codex, Gemini CLI, GitHub Copilot CLI, or any supported assistant, and it extracts concepts, relationships, and design rationale from your entire codebase — then lets your AI navigate by graph structure instead of grepping through every file.\n\nOn a 52-file mixed corpus (Karpathy repos + papers + images) graphify reduced tokens per query by 71.5× compared to reading raw files. The savings compound: the first run builds the graph; every subsequent query reads the compact representation instead of re-scanning source. A SHA256 cache means re-runs only re-process changed files.\n\nFully multimodal — drop in code, PDFs, markdown, screenshots, diagrams, whiteboard photos, or video files. Graphify extracts concepts from all of them and merges them into one unified graph. 25 programming languages supported via tree-sitter AST parsing.",
+      "Graphify is an open-source AI coding assistant skill that reads your files, builds a knowledge graph, and gives you back structure you didn't know was there. Type /graphify in Claude Code, Cursor, Codex, Gemini CLI, GitHub Copilot CLI, or any supported assistant, and it extracts concepts, relationships, and design rationale from your entire codebase — letting your AI navigate by graph structure instead of grepping through every file.\n\nPersonally tested and validated on large codebases: graphify reduces token usage by approximately 50% compared to feeding raw files into your AI assistant. The savings compound — the first run builds the graph; every subsequent query reads the compact representation instead of re-scanning source. A SHA256 cache means re-runs only re-process changed files.\n\nFully multimodal — drop in code, PDFs, markdown, screenshots, diagrams, whiteboard photos, or video files. Graphify extracts concepts from all of them and merges them into one unified graph. 25 programming languages supported via tree-sitter AST parsing.",
     tags: [
       "Knowledge Graph",
       "AST / tree-sitter",
@@ -204,7 +204,7 @@ export const aiEngineeringProjects: Project[] = [
     accentText: "text-violet-400",
     externalUrl: "https://github.com/amazingashis/graphify",
     stats: [
-      { value: "71.5×", label: "fewer tokens per query" },
+      { value: "~50%", label: "token reduction validated on large codebases" },
       { value: "25", label: "languages via tree-sitter AST" },
       { value: "3-pass", label: "extraction pipeline" },
     ],
@@ -216,8 +216,8 @@ export const aiEngineeringProjects: Project[] = [
       },
       {
         iconKey: "Cpu",
-        title: "71.5× token reduction",
-        body: "On a 52-file corpus the graph representation uses 71.5× fewer tokens per query than reading raw files. Savings compound on every subsequent query because the graph is cached and re-used without re-scanning source.",
+        title: "~50% token reduction in large codebases",
+        body: "Personally tested and validated — graphify reduces token usage by approximately 50% in large codebases by letting your AI assistant query a compact knowledge graph instead of re-reading raw source files. Savings compound on every subsequent query.",
       },
       {
         iconKey: "GitBranch",
@@ -271,8 +271,8 @@ export const aiEngineeringProjects: Project[] = [
       },
     ],
     limitation: {
-      title: "Not suited for Data Engineering projects",
-      body: "Graphify tracks code-level lineage — class hierarchies, function call chains, import graphs — using AST analysis. It does not model data pipeline lineage (sources → transformations → sinks). For DE projects you need dedicated data-lineage tools such as OpenLineage, Marquez, or Unity Catalog Lineage, which track how data flows through pipelines — not how code calls code.",
+      title: "Not practically useful for Data Engineering projects",
+      body: "Validated through direct testing: Graphify is not practically useful for Data Engineering projects where data mappings are the core concern. It tracks code-level lineage — class hierarchies, function call chains, import graphs — using AST analysis, but it has no understanding of data flow (sources → transformations → sinks). In DE workflows, what matters is how data moves and transforms across systems, not how functions call each other. For that, dedicated data-lineage tools such as OpenLineage, Marquez, or Unity Catalog Lineage are the right fit.",
     },
   },
   {
