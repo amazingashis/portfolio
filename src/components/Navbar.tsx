@@ -23,7 +23,7 @@ export default function Navbar() {
         {isHome ? (
           <>
             <a href="#experience" className="hover:text-white transition-colors">Experience</a>
-            <a href="#projects" className="hover:text-white transition-colors">Projects</a>
+            <Link href="/projects" className="hover:text-white transition-colors">Projects</Link>
             <a href="#publications" className="hover:text-white transition-colors">Publications</a>
             <a href="#achievements" className="hover:text-white transition-colors">Achievements</a>
             <a href="#certifications" className="hover:text-white transition-colors">Certifications</a>
