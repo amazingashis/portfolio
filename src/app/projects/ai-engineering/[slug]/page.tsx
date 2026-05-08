@@ -189,11 +189,265 @@ function GraphifyDetail({ project }: { project: (typeof aiEngineeringProjects)[n
   );
 }
 
+// ─── Central AI Agent Hub (MCP) — same section rhythm as Graphify, sky accents ──
+
+function AgentHubMcpDetail({ project }: { project: (typeof aiEngineeringProjects)[number] }) {
+  const quickSteps = [
+    {
+      label: "Deploy",
+      code: "Docker / PaaS: set MCP_TRANSPORT, HOST, MCP_ALLOWED_HOSTS, MCP_AUTH_TOKEN, SKILLS_ROOT — ship one service for the whole org.",
+    },
+    {
+      label: "Connect",
+      code: "MCP clients: https://<host>/sse (or /mcp) + Authorization: Bearer <token> — same catalog on every device.",
+    },
+    {
+      label: "Govern",
+      code: "Version SKILL.md packs in git; merge + redeploy to roll updates — one source of truth for agent behavior.",
+    },
+  ];
+
+  return (
+    <>
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-60px" }}
+        transition={{ duration: 0.7 }}
+        className="mb-16"
+      >
+        <h2 className="text-xs font-semibold tracking-widest text-gray-500 uppercase mb-6">Quick Start</h2>
+        <div className="rounded-xl border border-sky-500/20 bg-black/40 p-6">
+          <p className="text-gray-300 text-sm mb-4">
+            Run a single managed MCP endpoint so data-engineering agent skills stay centralized, versioned, and consistent
+            across teams:
+          </p>
+          <div className="space-y-3">
+            {quickSteps.map((item) => (
+              <div key={item.label} className="flex items-start gap-4">
+                <span className="text-xs text-sky-400 font-semibold w-16 pt-2.5 shrink-0">{item.label}</span>
+                <code className="flex-1 block bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-gray-200 font-mono leading-relaxed whitespace-pre-wrap">
+                  {item.code}
+                </code>
+              </div>
+            ))}
+          </div>
+          <p className="text-gray-500 text-xs mt-4">
+            Works across Cursor · Claude Desktop / CLI · any MCP-compatible client over HTTPS (or stdio for local spawning).
+          </p>
+        </div>
+      </motion.div>
+
+      {project.useCases && project.useCases.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.7 }}
+          className="mb-16"
+        >
+          <h2 className="text-xs font-semibold tracking-widest text-gray-500 uppercase mb-8">Use Cases</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {project.useCases.map((uc) => {
+              const Icon = ICON_MAP[uc.iconKey];
+              return (
+                <div
+                  key={uc.title}
+                  className="flex gap-4 rounded-xl border border-white/10 bg-white/5 p-6"
+                >
+                  <div className="shrink-0 h-9 w-9 rounded-xl border border-sky-500/20 bg-sky-500/10 flex items-center justify-center mt-0.5">
+                    <Icon className="w-4 h-4 text-sky-400" />
+                  </div>
+                  <div>
+                    <p className="text-white font-semibold text-sm mb-1">{uc.title}</p>
+                    <p className="text-gray-400 text-sm leading-relaxed">{uc.body}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
+
+      {project.implementation && project.implementation.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.7 }}
+          className="mb-16"
+        >
+          <h2 className="text-xs font-semibold tracking-widest text-gray-500 uppercase mb-8">
+            Technical delivery architecture
+          </h2>
+          <div className="space-y-0">
+            {project.implementation.map((step, i) => (
+              <motion.div
+                key={step.step}
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.6, delay: i * 0.1 }}
+                className="relative flex gap-6 pb-10"
+              >
+                {i < (project.implementation?.length ?? 0) - 1 && (
+                  <div className="absolute left-[18px] top-10 bottom-0 w-[1px] bg-sky-500/20" />
+                )}
+                <div className="shrink-0 h-9 w-9 rounded-full border border-sky-500/40 bg-sky-500/10 flex items-center justify-center text-xs font-bold mt-0.5 z-10">
+                  <span className="text-sky-400">{step.step}</span>
+                </div>
+                <div className="pt-1">
+                  <h3 className="text-white font-semibold text-lg mb-2">{step.title}</h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">{step.description}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
+      {project.mcpTools && project.mcpTools.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.7 }}
+          className="mb-16"
+        >
+          <h2 className="text-xs font-semibold tracking-widest text-gray-500 uppercase mb-6">Governed skill catalog</h2>
+          <div className="rounded-xl border border-white/10 bg-black/30 divide-y divide-white/10">
+            {project.mcpTools.map((row) => (
+              <div key={row.name} className="flex gap-4 p-5">
+                <CheckCircle2 className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" />
+                <div>
+                  <code className="font-mono text-sm text-sky-300">{row.name}</code>
+                  <p className="text-gray-500 text-sm mt-0.5 leading-relaxed">{row.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
+      {project.techStack && project.techStack.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.7 }}
+          className="mb-16"
+        >
+          <h2 className="text-xs font-semibold tracking-widest text-gray-500 uppercase mb-6">Tech stack</h2>
+          <div className="rounded-xl border border-sky-500/20 bg-black/40 p-6">
+            <ul className="space-y-3">
+              {project.techStack.map((line) => (
+                <li key={line} className="flex gap-3 text-sm text-gray-300 leading-relaxed">
+                  <span className="text-sky-400 shrink-0 mt-0.5">▸</span>
+                  <span>{line}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </motion.div>
+      )}
+    </>
+  );
+}
+
 // ─── Generic AI project detail ────────────────────────────────────────────────
 
 function GenericDetail({ project }: { project: (typeof aiEngineeringProjects)[number] }) {
   return (
     <>
+      {/* Use cases (shared shape with Graphify; any project may define these) */}
+      {project.useCases && project.useCases.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.7 }}
+          className="mb-16"
+        >
+          <h2 className="text-xs font-semibold tracking-widest text-gray-500 uppercase mb-8">
+            Use Cases
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {project.useCases.map((uc) => {
+              const Icon = ICON_MAP[uc.iconKey];
+              return (
+                <div
+                  key={uc.title}
+                  className="flex gap-4 rounded-xl border border-white/10 bg-white/5 p-6"
+                >
+                  <div
+                    className={`shrink-0 h-9 w-9 rounded-xl border border-white/15 bg-black flex items-center justify-center mt-0.5`}
+                  >
+                    <Icon className={`w-4 h-4 ${project.accentText}`} />
+                  </div>
+                  <div>
+                    <p className="text-white font-semibold text-sm mb-1">{uc.title}</p>
+                    <p className="text-gray-400 text-sm leading-relaxed">{uc.body}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
+
+      {/* Tech stack */}
+      {project.techStack && project.techStack.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.7 }}
+          className="mb-16"
+        >
+          <h2 className="text-xs font-semibold tracking-widest text-gray-500 uppercase mb-6">
+            Tech Stack
+          </h2>
+          <ul className="flex flex-wrap gap-2">
+            {project.techStack.map((t) => (
+              <li key={t}>
+                <span
+                  className={`inline-block text-xs px-3 py-1.5 rounded-full border border-white/10 bg-white/5 ${project.accentText}`}
+                >
+                  {t}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </motion.div>
+      )}
+
+      {/* MCP tools / surfaces */}
+      {project.mcpTools && project.mcpTools.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.7 }}
+          className="mb-16"
+        >
+          <h2 className="text-xs font-semibold tracking-widest text-gray-500 uppercase mb-6">
+            MCP Tools &amp; Surfaces
+          </h2>
+          <div className="rounded-xl border border-white/10 bg-black/30 divide-y divide-white/10">
+            {project.mcpTools.map((row) => (
+              <div key={row.name} className="flex flex-col sm:flex-row sm:gap-6 p-5">
+                <code
+                  className={`font-mono text-sm shrink-0 sm:w-56 ${project.accentText}`}
+                >
+                  {row.name}
+                </code>
+                <p className="text-gray-400 text-sm leading-relaxed mt-1 sm:mt-0">{row.description}</p>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
       {/* Implementation */}
       {project.implementation && (
         <motion.div
@@ -231,6 +485,24 @@ function GenericDetail({ project }: { project: (typeof aiEngineeringProjects)[nu
           </div>
         </motion.div>
       )}
+
+      {project.limitation && (
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.7 }}
+          className="mb-16"
+        >
+          <div className="flex gap-4 items-start p-6 rounded-xl border border-amber-500/20 bg-amber-500/5">
+            <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-amber-300 font-semibold mb-2">{project.limitation.title}</p>
+              <p className="text-amber-300/70 text-sm leading-relaxed">{project.limitation.body}</p>
+            </div>
+          </div>
+        </motion.div>
+      )}
     </>
   );
 }
@@ -244,12 +516,16 @@ export default function AIEngineeringProjectDetail() {
   if (!project) return notFound();
 
   const isGraphify = project.slug === "graphify";
+  const isAgentHubMcp = project.slug === "skills-mcp-server";
+  const landscapeLayout = isGraphify || isAgentHubMcp;
 
   return (
     <main className="relative w-full min-h-screen bg-[#000000]">
       <Navbar />
 
-      <div className="max-w-5xl mx-auto px-6 md:px-16 pt-16 pb-32">
+      <div
+        className={`mx-auto px-6 md:px-16 pt-16 pb-32 ${landscapeLayout ? "max-w-6xl" : "max-w-5xl"}`}
+      >
 
         {/* Breadcrumb */}
         <motion.div
@@ -333,9 +609,10 @@ export default function AIEngineeringProjectDetail() {
           </div>
         </motion.div>
 
-        {/* Graphify gets extra sections; others get generic layout */}
         {isGraphify ? (
           <GraphifyDetail project={project} />
+        ) : isAgentHubMcp ? (
+          <AgentHubMcpDetail project={project} />
         ) : (
           <GenericDetail project={project} />
         )}

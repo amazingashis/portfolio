@@ -61,6 +61,10 @@ export interface Project {
   implementation?: ImplementationStep[];
   artifacts?: Artifact[];
   limitation?: Limitation;
+  /** Detail page: technology labels */
+  techStack?: string[];
+  /** Detail page: MCP tools / resources / prompts */
+  mcpTools?: { name: string; description: string }[];
 }
 
 // ─── Data Engineering ─────────────────────────────────────────────────────────
@@ -182,7 +186,7 @@ export const dataEngineeringProjects: Project[] = [
 export const aiEngineeringProjects: Project[] = [
   {
     slug: "graphify",
-    title: "Graphify",
+    title: "Reduce AI Token Use in Large Codebases",
     category: "Open Source · AI Coding Assistant Skill",
     summary:
       "An open-source AI coding assistant skill that turns any folder of code, docs, papers, images, or videos into a queryable knowledge graph. Personally tested and validated — reduces token usage by ~50% in large codebases. Works in Claude Code, Cursor, Codex, Gemini CLI, and more.",
@@ -314,6 +318,115 @@ export const aiEngineeringProjects: Project[] = [
         title: "Real-time Dashboard",
         description:
           "Power BI streaming dashboards visualised sensor data, model predictions, and trend analysis. Alerts triggered automated recommendations for local community action.",
+      },
+    ],
+  },
+  {
+    slug: "skills-mcp-server",
+    title: "Central AI Agent Hub with MCP for Enterprise-Scale Skill Deployment",
+    category: "Remote MCP · Agent Infrastructure",
+    summary:
+      "A centrally managed MCP server that turns organizational AI skills into shared, versioned agent capabilities across teams and devices. It reduces duplicated prompt engineering, enforces consistent delivery standards, and gives a single deployment path for updates, tracking, and governance.",
+    fullDescription:
+      "This project solves a core enterprise AI operations problem: teams build useful skills and agent playbooks, but they remain scattered across local machines and become difficult to govern. By hosting those skills behind one MCP endpoint, organizations can distribute agent behavior from a central repository with clear version control, predictable rollout, and simpler onboarding.\n\nBusiness value comes from standardization and speed. Data engineering teams get reusable guided workflows (data engineering patterns, Databricks secrets practices, workflow builder logic, and Delta table operations) without each engineer reinventing prompts or setup. The same managed catalog can be consumed from multiple clients and devices, reducing drift between environments and improving delivery quality.\n\nThe platform model also supports maintainability at scale: new skills are added once, reviewed once, and deployed once. That creates better change tracking, safer updates, and easier auditability of what agent capabilities are available in production at any point in time.",
+    tags: [
+      "MCP",
+      "Model Context Protocol",
+      "TypeScript",
+      "Node.js",
+      "Express",
+      "@modelcontextprotocol/sdk",
+      "Docker",
+      "Streamable HTTP",
+      "SSE",
+      "Cursor",
+      "Claude",
+      "Zod",
+      "Remote MCP",
+      "Render",
+    ],
+    color: "from-sky-500/15 to-cyan-600/15",
+    accentBorder: "hover:border-sky-500/40",
+    accentText: "text-sky-400",
+    externalUrl: "https://github.com/amazingashis/mcp-deployment",
+    stats: [
+      { value: "1", label: "central skill catalog for teams and devices" },
+      { value: "4", label: "data engineering skill packs managed centrally" },
+      { value: "100%", label: "cross-device reuse through one MCP endpoint" },
+    ],
+    techStack: [
+      "TypeScript / Node.js 20+",
+      "@modelcontextprotocol/sdk (McpServer, StreamableHTTPServerTransport, SSEServerTransport, StdioServerTransport)",
+      "Express (createMcpExpressApp)",
+      "Zod (tool input schemas)",
+      "Docker & docker-compose",
+      "Bearer auth + timing-safe compare",
+      "HTTPS termination at reverse proxy (Render, nginx, etc.)",
+    ],
+    mcpTools: [
+      {
+        name: "data-engineering",
+        description: "Centralized skill guidance for data engineering agent workflows and review patterns.",
+      },
+      {
+        name: "databricks secrets",
+        description: "Operational practices for Databricks secret handling and safe configuration patterns.",
+      },
+      {
+        name: "databricks workflow builder",
+        description: "Reusable approach for composing Databricks task graphs and workflow definitions.",
+      },
+      {
+        name: "delta table operations",
+        description: "Consistent playbook for Delta table lifecycle operations, migrations, and reliability checks.",
+      },
+    ],
+    useCases: [
+      {
+        iconKey: "Workflow",
+        title: "Data engineering standards available on every device",
+        body: "Deploy once and consume from multiple laptops and AI clients, so every engineer uses the same approved data engineering skills instead of maintaining local copies.",
+      },
+      {
+        iconKey: "Layers",
+        title: "Reusable Databricks and Delta playbooks",
+        body: "Databricks secrets, workflow builder, and Delta table operation skills remain centrally versioned and reusable across projects, reducing repeated setup and inconsistent implementations.",
+      },
+      {
+        iconKey: "ShieldCheck",
+        title: "Governed agent rollout with version control",
+        body: "A central MCP-managed skill repository enables controlled updates, team-wide rollouts, and traceable changes to agent behavior, improving governance in larger organizations.",
+      },
+      {
+        iconKey: "Cpu",
+        title: "Faster agent deployment lifecycle",
+        body: "New or updated data engineering skills can be published once and immediately consumed across environments, cutting time-to-adoption for internal AI agents.",
+      },
+    ],
+    implementation: [
+      {
+        step: "01",
+        title: "SkillsRegistry & MCP server",
+        description:
+          "Walks SKILLS_ROOT recursively for SKILL.md; builds stable ids (POSIX-relative paths); extracts title/description teaser for listings. create-server.ts wires McpServer with registerResource (URI template), registerTool, registerPrompt.",
+      },
+      {
+        step: "02",
+        title: "HTTP transports",
+        description:
+          "createMcpExpressApp() applies host validation when allowedHosts are set. POST /mcp and POST /sse run stateless StreamableHTTPServerTransport per request—compatible with Cursor’s POST-to-/sse probe. GET /sse opens SSE sessions; POST /messages routes JSON-RPC posts by session id.",
+      },
+      {
+        step: "03",
+        title: "Auth & compatibility",
+        description:
+          "Bearer middleware accepts Bearer <token> or a bare single token for misconfigured clients; constant-time equality vs MCP_AUTH_TOKEN. Stub POST /register returns JSON when clients attempt OAuth fallback after 401.",
+      },
+      {
+        step: "04",
+        title: "Ship & observe",
+        description:
+          "Multi-stage Dockerfile (Alpine, non-root user), Compose for local parity, HOSTING_AND_CURSOR.md / DEPLOYMENT.md for Render env vars (MCP_TRANSPORT, HOST, MCP_ALLOWED_HOSTS, MCP_AUTH_TOKEN, SKILLS_ROOT).",
       },
     ],
   },
