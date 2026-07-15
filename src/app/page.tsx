@@ -1,9 +1,5 @@
-"use client";
-
-import { useRef } from "react";
 import Navbar from "@/components/Navbar";
-import ScrollyCanvas from "@/components/ScrollyCanvas";
-import Overlay from "@/components/Overlay";
+import Hero from "@/components/Hero";
 import Experience from "@/components/Experience";
 import CertifiedEngineer from "@/components/CertifiedEngineer";
 import Projects from "@/components/Projects";
@@ -12,17 +8,11 @@ import Achievements from "@/components/Achievements";
 import Certifications from "@/components/Certifications";
 
 export default function Home() {
-  const canvasContainerRef = useRef<HTMLDivElement>(null);
-
   return (
     <main className="relative w-full min-h-screen bg-[#000000]">
       <Navbar />
 
-      {/* 500vh container for the scroll sequence */}
-      <div ref={canvasContainerRef} className="relative h-[500vh] w-full">
-        <ScrollyCanvas containerRef={canvasContainerRef} />
-        <Overlay containerRef={canvasContainerRef} />
-      </div>
+      <Hero />
 
       <Experience />
       <CertifiedEngineer />
