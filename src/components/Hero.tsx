@@ -24,8 +24,8 @@ export default function Hero() {
         className="object-cover"
       />
 
-      {/* Name + designation — centered, nudged a bit below center */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 translate-y-[7vh]">
+      {/* Name + designation — dead-center on all screens */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
         <h1 className="text-6xl sm:text-7xl md:text-8xl font-bold tracking-tighter text-white mb-4 drop-shadow-lg leading-[1.05]">
           {/* Stacks onto two lines on mobile, one line from md up */}
           <span className="block md:inline">Ashish</span>{" "}
