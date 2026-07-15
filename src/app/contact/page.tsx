@@ -7,10 +7,12 @@ import Navbar from "@/components/Navbar";
 export default function Contact() {
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus("loading");
+    setErrorMsg("");
 
     try {
       const res = await fetch("/api/contact", {
@@ -19,14 +21,18 @@ export default function Contact() {
         body: JSON.stringify(formData),
       });
 
-      if (res.ok) {
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok && data.success) {
         setStatus("success");
         setFormData({ name: "", email: "", message: "" });
       } else {
         setStatus("error");
+        setErrorMsg(data.error ? `${data.error} (${res.status})` : `Request failed (${res.status})`);
       }
-    } catch (err) {
+    } catch {
       setStatus("error");
+      setErrorMsg("Network error — could not reach the server.");
     }
   };
 
@@ -94,7 +100,9 @@ export default function Contact() {
               <p className="text-green-400 text-center mt-4">Message sent successfully!</p>
             )}
             {status === "error" && (
-              <p className="text-red-400 text-center mt-4">Failed to send message. Please try again.</p>
+              <p className="text-red-400 text-center mt-4">
+                {errorMsg || "Failed to send message. Please try again."}
+              </p>
             )}
           </form>
         </motion.div>
