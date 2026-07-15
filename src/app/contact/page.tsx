@@ -14,11 +14,29 @@ export default function Contact() {
     setStatus("loading");
     setErrorMsg("");
 
+    // Web3Forms' free plan only accepts submissions directly from the browser,
+    // so we POST to their API from here rather than through a server route. The
+    // access key is public by design; it must be exposed via NEXT_PUBLIC_*.
+    const accessKey = process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY;
+    if (!accessKey) {
+      setStatus("error");
+      setErrorMsg("Contact form is not configured yet.");
+      return;
+    }
+
     try {
-      const res = await fetch("/api/contact", {
+      const res = await fetch("https://api.web3forms.com/submit", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          access_key: accessKey,
+          subject: `New portfolio message from ${formData.name}`,
+          from_name: "Portfolio Contact Form",
+          name: formData.name,
+          email: formData.email, // used by Web3Forms as the reply-to address
+          replyto: formData.email,
+          message: formData.message,
+        }),
       });
 
       const data = await res.json().catch(() => ({}));
@@ -28,11 +46,11 @@ export default function Contact() {
         setFormData({ name: "", email: "", message: "" });
       } else {
         setStatus("error");
-        setErrorMsg(data.error ? `${data.error} (${res.status})` : `Request failed (${res.status})`);
+        setErrorMsg(data.message || `Request failed (${res.status})`);
       }
     } catch {
       setStatus("error");
-      setErrorMsg("Network error — could not reach the server.");
+      setErrorMsg("Network error — could not reach Web3Forms.");
     }
   };
 
