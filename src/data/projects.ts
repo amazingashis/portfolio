@@ -430,5 +430,110 @@ export const aiEngineeringProjects: Project[] = [
       },
     ],
   },
+  {
+    slug: "studio-knowledge-base-rag",
+    title: "Organization-Level RAG over Data-Engineering Knowledge",
+    category: "RAG Architecture · Databricks · Organization Level",
+    summary:
+      "A Databricks-native Retrieval-Augmented Generation system over internal data-engineering documents — field-mapping workbooks, data dictionaries, and design specs. It answers questions three ways (exact SQL lookups, hybrid vector retrieval, and LLM-drafted cited answers), fed by a governed ingestion pipeline with ~27 hard quality gates that block a bad build before it ever reaches answers.",
+    fullDescription:
+      "Studio Knowledge Base is a Databricks-native RAG system deployed at organization level over internal data-engineering documents: field-mapping workbooks, data dictionaries, and design/spec documents. Files are uploaded to a Unity Catalog Volume corpus where the folder path is a contract — it assigns client IDs, document kind (prose / mapping / dictionary), and sharing class, and doc_kind doubles as a processing instruction (only dictionary documents feed the structured dictionary table). A Lakebase (managed Postgres) registry tracks each upload through a Uploaded → Processing → Completed | Failed | Missing-file lifecycle; because only serverless compute reaches Lakebase, the pipeline job brackets its classic-compute stages with serverless status tasks.\n\nThe ingestion run is deliberately restricted: it parses exactly the selected files (selection is an instruction — selected files parse unconditionally, even if byte-identical), leaves untouched documents in place via per-document DELETE+APPEND on Delta (never full-table rewrites), withdraws rows for files deleted from the Volume, and refuses cross-run duplicate content (same hash at a new path is quarantined while the incumbent keeps its identity). The Databricks job runs git-sourced notebooks as a task graph: parse documents (docling → typed elements and table cells) and spreadsheets (per-sheet archetype classification) → normalize into a canonical schema (source→silver→gold field mappings, a core+ext data dictionary, canonical sections, and precomputed rollup summaries) → parent/child chunking with content-derived chunk IDs and a provenance prefix on every chunk.\n\nBefore anything reaches answers, a checks stage enforces ~27 hard gates and measured baselines — parse fidelity, furniture leaks, chunk size/uniqueness/reproducibility, sheet coverage, mapping-chunk contracts, PHI/identifier patterns, and landing/quarantine reconciliation — so any unexpected gate failure fails the run before the vector index syncs. A vocabulary stage extracts ~18k corpus terms with size-independent rarity and bare forms of qualified names, then the sync stage triggers the Vector Search Delta Sync and waits. The index (chunks_index) is a Databricks Vector Search Delta Sync index over the gold chunks with change-data-feed, using Databricks-managed BGE-large embeddings (1024 dims) applied to both chunk text at sync and query text at query time.\n\nQuestions are answered by three composed paths. Cheap deterministic intent routing classifies lookup / aggregate / retrieval and extracts identifiers — aggregate questions are never answered from top-k because counting from a handful of chunks produces confident wrong answers. The exact path resolves prose names to identifiers via the vocabulary and runs plain parameterized SQL over the field-mapping and dictionary tables. The semantic path always runs one SQL statement on a serverless warehouse: hybrid vector search → LEFT JOIN the parent section for surrounding context → ai_query drafts an evidence-only answer with per-claim citations (title + page), emitting a NOT_IN_CORPUS sentinel when nothing supports an answer. Two front ends consume it: a Databricks App (Streamlit) and a Genie space exposing UC functions (ask_knowledge runs all three paths in one call). Deterministic identity — same content yields the same chunk IDs — keeps citations stable and re-embedding minimal, and no PHI or content ever appears in logs or quarantine reasons.",
+    tags: [
+      "RAG",
+      "Databricks",
+      "Vector Search",
+      "Unity Catalog",
+      "Lakebase (Postgres)",
+      "Delta Lake",
+      "docling",
+      "BGE-large Embeddings",
+      "ai_query / Gemini",
+      "Genie",
+      "Streamlit",
+      "Python",
+    ],
+    color: "from-rose-500/15 to-pink-600/15",
+    accentBorder: "hover:border-rose-500/40",
+    accentText: "text-rose-400",
+    stats: [
+      { value: "3", label: "composed answer paths per question" },
+      { value: "~27", label: "hard quality gates before index sync" },
+      { value: "1024-dim", label: "BGE-large managed embeddings" },
+    ],
+    useCases: [
+      {
+        iconKey: "Database",
+        title: "Contract-driven, governed intake",
+        body: "The UC Volume folder path is the contract: it assigns client IDs, document kind, and sharing class, while a Lakebase registry tracks each file through its status lifecycle. Restricted runs parse only selected files, mirror deletions, and quarantine cross-run duplicate content instead of double-counting it.",
+      },
+      {
+        iconKey: "ShieldCheck",
+        title: "Quality gates guard every build",
+        body: "~27 hard gates plus measured baselines (parse fidelity, furniture leaks, chunk reproducibility, mapping-chunk contracts, PHI/identifier patterns, landing/quarantine reconciliation) run before the index syncs — a bad build never reaches answers, and sensitive values never leak into logs or indexed text.",
+      },
+      {
+        iconKey: "FileSearch",
+        title: "Three-way question answering",
+        body: "Exact parameterized SQL for identifier lookups, hybrid vector retrieval for semantic questions, and an LLM-drafted answer with per-claim citations (title + page). The prompt is evidence-only and returns a NOT_IN_CORPUS sentinel rather than guessing when nothing supports an answer.",
+      },
+      {
+        iconKey: "BarChart3",
+        title: "Aggregate-safe routing",
+        body: "Deterministic intent routing sends counting and aggregation questions to SQL rather than top-k retrieval, because counting from a handful of retrieved chunks produced confident wrong answers. Rollup summaries are precomputed as their own chunks so retrieval can surface aggregates it cannot otherwise enumerate.",
+      },
+    ],
+    techStack: [
+      "Databricks — Unity Catalog, UC Volumes, Vector Search, serverless SQL warehouses",
+      "Lakebase (managed Postgres) source-document registry with a status lifecycle",
+      "Delta Lake — per-document DELETE+APPEND, change-data-feed Delta Sync index",
+      "docling — PDF/DOCX/PPTX → typed elements and table cells",
+      "Databricks-managed embeddings — bge_large_en_v1_5 (1024 dims), same model at sync and query",
+      "ai_query with databricks-gemini-3-5-flash for evidence-only cited answers",
+      "Databricks Apps (Streamlit) front end + Genie space UC functions (ask_knowledge, lookup_*, resolve_identifier)",
+      "Python — studio_hub intent routing and vocabulary-based identifier resolution",
+    ],
+    implementation: [
+      {
+        step: "01",
+        title: "Governed intake & registry",
+        description:
+          "Files land in a UC Volume corpus whose path encodes client IDs, doc_kind, and sharing class. A Lakebase registry tracks Uploaded → Processing → Completed | Failed | Missing-file; the job brackets classic-compute stages with serverless status tasks (mark_processing / mark_completed / mark_failed) because only serverless compute reaches Lakebase.",
+      },
+      {
+        step: "02",
+        title: "Parse — documents & spreadsheets",
+        description:
+          "docling turns PDF/DOCX/PPTX into typed elements and table cells, flagging headers/footers as furniture excluded from canonical text. Spreadsheets are classified per sheet (mapping / joins / reference / data_extract), with detected header rows, banner capture, and merged-cell fill-down; sample member-data sheets never reach the index.",
+      },
+      {
+        step: "03",
+        title: "Normalize to a canonical schema",
+        description:
+          "A data-driven alias registry translates each workbook's spellings into one canonical schema: source→silver→gold field mappings with audit columns, a core+ext data dictionary (extracted from dictionary documents), canonical markdown sections, and rendered entity groups including precomputed rollup summaries. Mapping sheets that yield zero canonical rows fall back to rendered text.",
+      },
+      {
+        step: "04",
+        title: "Chunk — parent/child with stable identity",
+        description:
+          "Sections become parents; retrieval units are child chunks capped at 2800 chars, each opening with a provenance prefix (title | section path | provenance). chunk_id is content-derived (doc_id + section path + body + occurrence), so identical content re-mints identical IDs across rebuilds — keeping citations stable and re-embedding minimal.",
+      },
+      {
+        step: "05",
+        title: "Quality gates, vocabulary & index sync",
+        description:
+          "~27 hard gates and measured baselines run before any sync; an unexpected failure fails the run so a bad build never reaches answers. A vocabulary stage extracts ~18k terms with size-independent rarity and bare forms of qualified names, then the sync stage triggers the Vector Search Delta Sync (change data feed, BGE-large managed embeddings) and waits.",
+      },
+      {
+        step: "06",
+        title: "Three composed answer paths",
+        description:
+          "Intent routing (deterministic regexes) picks lookup / aggregate / retrieval. The exact path resolves prose names via the vocabulary and runs parameterized SQL over the mapping/dictionary tables. The semantic path runs one serverless SQL statement — hybrid vector_search → LEFT JOIN parent section → ai_query — returning an evidence-only answer with per-claim citations or a NOT_IN_CORPUS sentinel.",
+      },
+    ],
+    limitation: {
+      title: "Serverless scale-to-zero cold starts",
+      body: "The Databricks-managed embedding endpoint (bge_large_en_v1_5) scales to zero when idle, so the first query after a quiet period can stall on a cold start while the serving endpoint spins back up. This is a known operational trade-off of managed serverless embeddings — periodic warm-up pings or a minimum-provisioned endpoint mitigate the latency at additional cost.",
+    },
+  },
   // ─── Add new AI Engineering projects above this line ─────────────────────────
 ];
