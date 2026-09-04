@@ -535,5 +535,107 @@ export const aiEngineeringProjects: Project[] = [
       body: "The Databricks-managed embedding endpoint (bge_large_en_v1_5) scales to zero when idle, so the first query after a quiet period can stall on a cold start while the serving endpoint spins back up. This is a known operational trade-off of managed serverless embeddings — periodic warm-up pings or a minimum-provisioned endpoint mitigate the latency at additional cost.",
     },
   },
+  {
+    slug: "data-engineering-agent-skills",
+    title: "Enterprise Data-Engineering Skills for AI Agents",
+    category: "Agent Skills · Cursor · Databricks Genie",
+    summary:
+      "A governed library of enterprise-grade agent skills that turn recurring data-engineering work into reliable, automatable task playbooks. The same skills drive agents across Cursor and Databricks Genie — covering data ingestion, validation, quality checks, complex-file parsing, interoperability / data-sufficiency checks, EDI parsing, and transformations.",
+    fullDescription:
+      "This project packages the hardest, most repetitive parts of data engineering into a library of enterprise-level agent skills — structured task playbooks that an AI agent can execute deterministically instead of improvising. Each skill encodes the standards, guardrails, and step-by-step procedure for one class of work, so an agent produces consistent, reviewable output whether it is ingesting a new feed, validating a schema, or parsing an EDI file.\n\nThe skills are surfaced to agents across multiple runtimes. In Cursor they guide code-writing and review workflows; in Databricks Genie they back natural-language operations over governed data, letting analysts trigger ingestion, validation, and transformation tasks in plain language. Because the same skill definitions drive every runtime, teams get one source of truth for how data-engineering automation should behave — no per-tool drift, no re-implementing the same prompt logic on each surface.\n\nBusiness value comes from standardization and safety. The library covers data ingestion, data validation, data quality checks, parsing of complex files, interoperability and data-sufficiency checks, EDI parsing, and data transformations. Skills are versioned and centrally governed, so a fix or policy change is authored once and rolled out everywhere. Quality gates and data-sufficiency checks are built into the playbooks themselves, so automation fails loudly on bad input rather than silently propagating it downstream.",
+    tags: [
+      "Agent Skills",
+      "Task Automation",
+      "Cursor",
+      "Databricks Genie",
+      "Data Ingestion",
+      "Data Validation",
+      "Data Quality",
+      "EDI Parsing",
+      "Interoperability",
+      "Data Transformations",
+      "Governance",
+    ],
+    color: "from-teal-500/15 to-cyan-600/15",
+    accentBorder: "hover:border-teal-500/40",
+    accentText: "text-teal-400",
+    stats: [
+      { value: "7", label: "enterprise skill packs" },
+      { value: "2+", label: "agent runtimes (Cursor, Genie)" },
+      { value: "1", label: "governed source of truth" },
+    ],
+    useCases: [
+      {
+        iconKey: "Database",
+        title: "Data ingestion",
+        body: "A playbook for onboarding new feeds — source discovery, landing-zone conventions, idempotent loads, and audit columns — so ingestion is repeatable, traceable, and safe to re-run.",
+      },
+      {
+        iconKey: "ShieldCheck",
+        title: "Data validation",
+        body: "Schema, type, and constraint validation with explicit pass/fail gates that block malformed records from promoting past the landing layer.",
+      },
+      {
+        iconKey: "BarChart3",
+        title: "Data quality checks",
+        body: "Standardized completeness, uniqueness, freshness, and referential-integrity checks with measured baselines and clear, actionable failure reporting.",
+      },
+      {
+        iconKey: "FileSearch",
+        title: "Parsing complex files",
+        body: "Structured extraction from messy real-world files — nested spreadsheets, multi-section documents, irregular layouts — into typed, canonical records.",
+      },
+      {
+        iconKey: "Layers",
+        title: "Interoperability & data-sufficiency checks",
+        body: "Interoperability rule checks plus data-sufficiency gating: confirm required fields and coverage exist before a downstream process is allowed to run.",
+      },
+      {
+        iconKey: "GitBranch",
+        title: "EDI parsing agents",
+        body: "EDI / X12 parsing that decomposes transaction sets into structured, validated records for healthcare and B2B data exchange.",
+      },
+      {
+        iconKey: "Workflow",
+        title: "Data transformations",
+        body: "Canonical transformation patterns — mapping, normalization, and derivations — expressed as reviewable, reusable steps rather than one-off scripts.",
+      },
+    ],
+    implementation: [
+      {
+        step: "01",
+        title: "Author skills as governed playbooks",
+        description:
+          "Each skill is a versioned definition encoding the standard, guardrails, and step-by-step procedure for one class of data-engineering work. Skills are reviewed once and stored centrally so behavior is consistent and auditable.",
+      },
+      {
+        step: "02",
+        title: "Publish to agent runtimes",
+        description:
+          "The same skill catalog is exposed to Cursor for code-writing and review workflows and to Databricks Genie for natural-language data operations, so every runtime executes identical, approved procedures.",
+      },
+      {
+        step: "03",
+        title: "Enforce quality & sufficiency gates",
+        description:
+          "Validation, data-quality, and data-sufficiency checks run inside the skills themselves. Automation halts on bad or incomplete input and reports the failing gate rather than propagating errors downstream.",
+      },
+      {
+        step: "04",
+        title: "Version, roll out, and track",
+        description:
+          "Fixes and policy changes are authored once and rolled out everywhere through versioned skill updates, giving teams change tracking and a single governed source of truth for agent-driven automation.",
+      },
+    ],
+    techStack: [
+      "Agent skills (structured task playbooks) consumed by Cursor and Databricks Genie",
+      "Databricks Genie — natural-language data operations backed by governed skills",
+      "Data ingestion, validation, and data-quality-check skill packs",
+      "Complex-file parsing and EDI / X12 parsing skills",
+      "Interoperability and data-sufficiency gating",
+      "Canonical data-transformation patterns",
+      "Central versioning & governance for one source of truth",
+    ],
+  },
   // ─── Add new AI Engineering projects above this line ─────────────────────────
 ];
