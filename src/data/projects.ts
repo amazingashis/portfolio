@@ -432,3 +432,228 @@ export const aiEngineeringProjects: Project[] = [
   },
   // ─── Add new AI Engineering projects above this line ─────────────────────────
 ];
+
+// ─── Healthcare ───────────────────────────────────────────────────────────────
+
+export const healthcareProjects: Project[] = [
+  {
+    slug: "hedis-quality-measures",
+    title: "HEDIS Quality Measures Engine",
+    category: "Healthcare · Quality Measures",
+    summary:
+      "Built calculation logic for HEDIS quality measures such as Breast Cancer Screening (BCS), Cervical Cancer Screening (CCS), and Colorectal Cancer Screening (COL) — covering eligible populations, denominators, numerators, and exclusions across payer claims and enrollment data.",
+    fullDescription:
+      "Implemented HEDIS (Healthcare Effectiveness Data and Information Set) quality measure calculations used by US health plans to report care quality to NCQA and CMS. Each measure follows the same anatomy — define the eligible population, apply continuous-enrollment rules, derive the denominator, subtract exclusions, and count numerator-compliant members — but the clinical logic differs per measure and per measurement year.\n\nExamples of measures implemented: Breast Cancer Screening (BCS) — women 50–74 with a mammogram in the past 27 months, excluding members with bilateral mastectomy; Cervical Cancer Screening (CCS) — women 21–64 screened with cytology every 3 years or hrHPV testing every 5 years, excluding hysterectomy with no residual cervix; Colorectal Cancer Screening (COL) — members 45–75 with FOBT, FIT-DNA, colonoscopy, or other qualifying screenings within their lookback windows, excluding colorectal cancer and total colectomy history.\n\nMeasure logic was driven by claims (CPT, HCPCS, ICD-10), lab results, and enrollment spans, with value-set mapping kept current per measurement-year specifications. Outputs fed compliance rates, member-level gap-in-care lists, and payer reporting downstream.",
+    tags: [
+      "HEDIS",
+      "NCQA",
+      "BCS / CCS / COL",
+      "Value Sets",
+      "ICD-10 / CPT / HCPCS",
+      "Claims Data",
+      "PySpark",
+      "SQL",
+    ],
+    color: "from-emerald-500/15 to-teal-600/15",
+    accentBorder: "hover:border-emerald-500/40",
+    accentText: "text-emerald-400",
+    implementation: [
+      {
+        step: "01",
+        title: "Eligible Population & Continuous Enrollment",
+        description:
+          "Identify members meeting age, gender, and product-line criteria for each measure, then apply continuous-enrollment rules (e.g. enrolled during the measurement year with no more than one 45-day gap) using enrollment span data.",
+      },
+      {
+        step: "02",
+        title: "Denominator & Exclusions",
+        description:
+          "Derive the denominator from the eligible population and remove required exclusions — clinical exclusions (bilateral mastectomy for BCS, hysterectomy for CCS, total colectomy for COL), hospice, and palliative-care members — identified through diagnosis, procedure, and place-of-service codes.",
+      },
+      {
+        step: "03",
+        title: "Numerator Compliance",
+        description:
+          "Scan claims and lab data for qualifying services within each measure's lookback window (27 months of mammography for BCS; 3-year cytology or 5-year hrHPV for CCS; per-modality windows for COL), mapping services through measurement-year value sets.",
+      },
+      {
+        step: "04",
+        title: "Rates & Gap-in-Care Outputs",
+        description:
+          "Compute compliance rates by plan, product line, and provider group, and publish member-level care-gap lists so outreach teams can close gaps before year-end reporting.",
+      },
+    ],
+    useCases: [
+      {
+        iconKey: "BarChart3",
+        title: "Plan-level quality reporting",
+        body: "Measure rates roll up by plan and product line for NCQA/CMS reporting cycles, with year-over-year trend visibility.",
+      },
+      {
+        iconKey: "FileSearch",
+        title: "Member gap-in-care lists",
+        body: "Non-compliant members surface with the specific missing service, powering outreach campaigns that close care gaps before the reporting deadline.",
+      },
+      {
+        iconKey: "ShieldCheck",
+        title: "Audit-ready measure logic",
+        body: "Each rate traces back to explicit denominator, exclusion, and numerator populations, making measure results defensible during compliance audits.",
+      },
+      {
+        iconKey: "Workflow",
+        title: "Measurement-year updates",
+        body: "Value-set and specification changes are isolated per measurement year, so annual HEDIS spec updates don't require rewriting measure logic.",
+      },
+    ],
+  },
+  {
+    slug: "edi-file-processing",
+    title: "EDI X12 File Processing",
+    category: "Healthcare · EDI & Standards",
+    summary:
+      "Built parsers and pipelines for X12 EDI transaction sets — 834 enrollment, 820 premium payments, 837 claims, and more — converting loop/segment structures into clean, analytics-ready tables.",
+    fullDescription:
+      "Created parsing and ingestion pipelines for the X12 EDI transaction sets that move data between US payers, employers, and providers: 834 (benefit enrollment and maintenance), 820 (premium payments), 837 (professional, institutional, and dental claims), along with related transactions such as 835 remittance advice.\n\nEDI files are hierarchical loop/segment structures (ISA/GS envelopes, ST transactions, and nested loops like 2000A–2300) rather than flat records, so the parsers handled envelope validation, loop traversal, repeating segments, and situational elements before flattening transactions into normalized relational tables. Malformed files, unexpected segment ordering, and partner-specific companion-guide quirks were handled through validation layers that quarantined bad transactions instead of failing whole batches.\n\nBeyond EDI, the same ingestion framework standardized data arriving as XML, HL7, Parquet, CSV, JSON, and Excel — giving downstream analytics one consistent schema regardless of the source format a client or trading partner used.",
+    tags: [
+      "EDI X12",
+      "834 / 820 / 837",
+      "835 Remittance",
+      "HL7",
+      "XML / JSON / CSV",
+      "Parquet",
+      "Python",
+      "PySpark",
+    ],
+    color: "from-teal-500/15 to-cyan-600/15",
+    accentBorder: "hover:border-teal-500/40",
+    accentText: "text-teal-400",
+    stats: [
+      { value: "834/820/837", label: "core X12 transaction sets parsed" },
+      { value: "7+", label: "file formats standardized (EDI, HL7, XML, Parquet, CSV, JSON, Excel)" },
+    ],
+    implementation: [
+      {
+        step: "01",
+        title: "Envelope Validation",
+        description:
+          "Validate ISA/IEA and GS/GE envelopes, control numbers, and ST/SE transaction counts before parsing. Files failing structural validation are quarantined with actionable error reports for trading partners.",
+      },
+      {
+        step: "02",
+        title: "Loop & Segment Parsing",
+        description:
+          "Traverse the hierarchical loop structure of each transaction set — subscriber and dependent loops in 834, claim/service-line loops (2300/2400) in 837 — resolving situational segments and repeating elements per implementation guide.",
+      },
+      {
+        step: "03",
+        title: "Normalization to Tables",
+        description:
+          "Flatten parsed transactions into normalized member, coverage, claim, and payment tables with full lineage back to the source file, interchange, and segment position for auditability.",
+      },
+      {
+        step: "04",
+        title: "Partner-Specific Handling",
+        description:
+          "Companion-guide variations per payer and trading partner are captured as configuration rather than code branches, so onboarding a new partner doesn't destabilize existing feeds.",
+      },
+    ],
+  },
+  {
+    slug: "interoperability-standardization",
+    title: "Interoperability & Data Standardization",
+    category: "Healthcare · Interoperability",
+    summary:
+      "Data standardization and standard data model (SAM) development for interoperability programs — including requirements and gap analysis of existing payer data against the CMS-9115-F and CMS-0057-F interoperability rules.",
+    fullDescription:
+      "Worked on payer interoperability programs driven by the CMS Interoperability and Patient Access final rule (CMS-9115-F) and the Interoperability and Prior Authorization final rule (CMS-0057-F), which require payers to expose claims, clinical, and prior-authorization data through standards-based FHIR APIs.\n\nThe core of the work was data standardization: developing standard data models (SAMs) that map heterogeneous source data — claims, enrollment, provider, and clinical feeds arriving in every format from EDI to HL7 to flat files — into consistent, interoperable structures that downstream FHIR resources and analytics can rely on.\n\nA major component was interoperability requirements and gap analysis: taking what the regulations require, comparing it element-by-element against what actually exists in a payer's current data, and producing concrete remediation plans — which fields are missing, which need transformation or code-set mapping (ICD, CPT, LOINC, NDC), and which source systems must be onboarded to reach compliance.",
+    tags: [
+      "CMS-9115-F",
+      "CMS-0057-F",
+      "FHIR",
+      "Standard Data Models (SAM)",
+      "Gap Analysis",
+      "Data Standardization",
+      "Patient Access API",
+      "Prior Authorization",
+    ],
+    color: "from-emerald-500/15 to-green-600/15",
+    accentBorder: "hover:border-emerald-500/40",
+    accentText: "text-emerald-400",
+    implementation: [
+      {
+        step: "01",
+        title: "Regulatory Requirements Mapping",
+        description:
+          "Break down CMS-9115-F (Patient Access API, provider directory) and CMS-0057-F (prior authorization APIs and timelines) into concrete data-element requirements per API and FHIR resource.",
+      },
+      {
+        step: "02",
+        title: "Gap Analysis Against Existing Data",
+        description:
+          "Compare required elements against the payer's actual source data — element by element — classifying each as available, transformable, or missing, and identifying the source systems needed to fill gaps.",
+      },
+      {
+        step: "03",
+        title: "Standard Data Model (SAM) Development",
+        description:
+          "Design and build standard data models that normalize claims, enrollment, provider, and clinical data into consistent structures, with code-set mapping (ICD-10, CPT, LOINC, NDC) applied at the model boundary.",
+      },
+      {
+        step: "04",
+        title: "Remediation & Compliance Roadmap",
+        description:
+          "Deliver prioritized remediation plans — transformations to build, feeds to onboard, mappings to maintain — so the payer reaches API compliance on regulatory timelines.",
+      },
+    ],
+  },
+  {
+    slug: "payer-analytics-reporting",
+    title: "Payer Analytics & Reporting",
+    category: "Healthcare · Analytics",
+    summary:
+      "Built the analytics and reporting layer used by US health plans: member months, care-gap reports, insurance leakage, IBNR reserves, claims and provider reporting, provider performance, and high-cost member analyses.",
+    fullDescription:
+      "Developed the reporting suite that health-plan actuarial, network, and care-management teams run their business on. Member-month calculations — the denominator behind nearly every per-member-per-month (PMPM) metric — were derived from enrollment spans with retroactivity handling, and fed utilization, cost, and premium analyses.\n\nFinancial and actuarial reporting included IBNR (incurred but not reported) reserve reports built from claims-lag triangles, and insurance leakage reports quantifying spend that left the contracted network or missed negotiated rates. Clinical and network reporting covered care-gap reports (driven by quality-measure results), claims reports, provider rosters, and provider performance reports comparing cost and utilization against peer benchmarks.\n\nHigh-cost member reports stratified the population by spend and risk to surface the small share of members driving a disproportionate share of cost — the starting point for case-management intervention. This portfolio of reporting was delivered across engagements with 80+ US healthcare clients, including data from major payers such as Aetna, Anthem, and Blue Cross Blue Shield plans.",
+    tags: [
+      "Member Months",
+      "PMPM",
+      "IBNR",
+      "Care Gaps",
+      "Leakage Analysis",
+      "Provider Performance",
+      "High-Cost Members",
+      "Claims Reporting",
+    ],
+    color: "from-green-500/15 to-emerald-600/15",
+    accentBorder: "hover:border-green-500/40",
+    accentText: "text-green-400",
+    stats: [
+      { value: "80+", label: "US healthcare clients served" },
+      { value: "8", label: "report families delivered" },
+      { value: "Aetna · Anthem · BCBS", label: "major payer data experience" },
+    ],
+    useCases: [
+      {
+        iconKey: "BarChart3",
+        title: "Actuarial & financial reporting",
+        body: "Member months, PMPM metrics, and IBNR reserve estimates from claims-lag triangles give actuarial teams the numbers behind pricing and reserving decisions.",
+      },
+      {
+        iconKey: "FileSearch",
+        title: "Care-gap & quality outreach",
+        body: "Care-gap reports translate quality-measure results into actionable member lists for outreach and intervention programs.",
+      },
+      {
+        iconKey: "Database",
+        title: "Network & provider insight",
+        body: "Leakage, provider, and provider-performance reports show where spend leaves the network and how providers compare on cost and utilization.",
+      },
+      {
+        iconKey: "Cpu",
+        title: "High-cost member management",
+        body: "Spend and risk stratification surfaces the members driving disproportionate cost, prioritizing case-management resources where they matter most.",
+      },
+    ],
+  },
+  // ─── Add new Healthcare projects above this line ──────────────────────────────
+];

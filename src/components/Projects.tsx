@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowUpRight, Database, BrainCircuit } from "lucide-react";
+import { ArrowUpRight, Database, BrainCircuit, HeartPulse } from "lucide-react";
 import Link from "next/link";
 
 const categories = [
@@ -35,6 +35,21 @@ const categories = [
     tags: ["Knowledge Graphs", "LLM Tooling", "Open Source", "Agents"],
     href: "/projects/ai-engineering",
   },
+  {
+    id: "healthcare",
+    icon: HeartPulse,
+    label: "Domain Expertise",
+    title: "Healthcare",
+    description:
+      "HEDIS quality measures, EDI X12 processing, CMS interoperability, and payer analytics delivered across 80+ US healthcare clients and major payers.",
+    stat: "4 projects",
+    color: "from-emerald-500/20 to-teal-600/20",
+    border: "hover:border-emerald-500/40",
+    accent: "text-emerald-400",
+    tagBorder: "border-emerald-500/20 text-emerald-400 bg-emerald-500/5",
+    tags: ["HEDIS", "EDI X12", "Interoperability", "Payer Analytics"],
+    href: "/projects/healthcare",
+  },
 ];
 
 export default function Projects() {
@@ -55,7 +70,7 @@ export default function Projects() {
         </motion.div>
 
         {/* Category cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {categories.map((cat, index) => {
             const Icon = cat.icon;
             return (

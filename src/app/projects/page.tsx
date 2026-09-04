@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
-import { ArrowUpRight, ArrowLeft, Database, BrainCircuit } from "lucide-react";
+import { ArrowUpRight, ArrowLeft, Database, BrainCircuit, HeartPulse } from "lucide-react";
 
 const categories = [
   {
@@ -34,6 +34,20 @@ const categories = [
     count: "2 projects",
     tags: ["Knowledge Graphs", "LLM Tooling", "Open Source", "Agents"],
   },
+  {
+    href: "/projects/healthcare",
+    icon: HeartPulse,
+    accent: "text-emerald-400",
+    border: "border-emerald-500/30 hover:border-emerald-400/50",
+    gradientHover: "from-emerald-500/15 to-teal-600/15",
+    tagStyle: "border-emerald-500/20 text-emerald-400 bg-emerald-500/5",
+    title: "Healthcare",
+    subtitle: "Domain Expertise",
+    description:
+      "HEDIS quality measures, EDI X12 processing, CMS interoperability, and payer analytics delivered across 80+ US healthcare clients, including data from major payers like Aetna, Anthem, and BCBS.",
+    count: "4 projects",
+    tags: ["HEDIS", "EDI X12", "Interoperability", "Payer Analytics"],
+  },
 ];
 
 export default function ProjectsPage() {
@@ -58,13 +72,13 @@ export default function ProjectsPage() {
           </Link>
           <h1 className="text-5xl md:text-7xl font-bold text-white mb-5 tracking-tight">Projects</h1>
           <p className="text-gray-400 text-lg max-w-2xl leading-relaxed">
-            A collection of engineering projects spanning large-scale data infrastructure and intelligent AI systems.
-            Each project reflects real-world problems solved at scale.
+            A collection of engineering projects spanning large-scale data infrastructure, intelligent AI systems,
+            and US healthcare data. Each project reflects real-world problems solved at scale.
           </p>
         </motion.div>
 
         {/* Category cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {categories.map((cat, index) => {
             const Icon = cat.icon;
             return (
