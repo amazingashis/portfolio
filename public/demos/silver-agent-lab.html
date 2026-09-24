@@ -1,0 +1,984 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Interactive 3D simulation of a 15-agent bronze-to-silver mapping system.">
+<title>Silver Agent Lab</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,400..700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  color-scheme:dark;
+  --ground:#0B0E13; --surface:#141820; --surface-2:#1A1F28; --surface-3:#232A34;
+  --ink:#E3E8EE; --ink-2:#A6B1BE; --ink-3:#77838F;
+  --hair:#28303A; --hair-2:#1F252E;
+  --worker:#E0A45F; --reviewer:#7FB9E0; --monitor:#69BAA9; --alarm:#E4866B;
+  --notes:#B9A7EE; --decis:#E6CF78; --fn:#98A4B3;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,Segoe UI,sans-serif;
+  --disp:"Archivo","IBM Plex Sans",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0}
+html,body{height:100%}
+body{background:var(--ground);color:var(--ink);font-family:var(--sans);font-size:13px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--reviewer);outline-offset:2px}
+
+.app{height:100%;display:grid;grid-template-columns:272px minmax(0,1fr) 360px;grid-template-rows:46px minmax(0,1fr) auto}
+.top{grid-column:1/-1;display:flex;align-items:center;gap:18px;padding:0 16px;border-bottom:1px solid var(--hair);
+  background:var(--surface);min-width:0}
+.brand{font-family:var(--disp);font-variation-settings:"wdth" 122;font-weight:700;font-size:14px;letter-spacing:-.01em;white-space:nowrap}
+.brand small{font-family:var(--mono);font-weight:400;font-size:10.5px;color:var(--ink-3);letter-spacing:.06em;margin-left:8px;font-variation-settings:normal}
+.stats{display:flex;gap:18px;margin-left:auto;overflow-x:auto;scrollbar-width:none}
+.stat{display:flex;flex-direction:column;line-height:1.15;white-space:nowrap}
+.stat b{font-family:var(--mono);font-weight:600;font-size:13px;font-variant-numeric:tabular-nums}
+.stat span{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+
+.side{background:var(--surface);border-right:1px solid var(--hair);overflow-y:auto;display:flex;flex-direction:column}
+.right{border-right:0;border-left:1px solid var(--hair)}
+.sec{padding:14px 14px 16px;border-bottom:1px solid var(--hair-2);display:flex;flex-direction:column;gap:10px}
+.lab{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin:0}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.btn{background:var(--surface-2);border:1px solid var(--hair);border-radius:5px;padding:6px 10px;font-family:var(--mono);
+  font-size:11px;letter-spacing:.04em;transition:background .12s,border-color .12s}
+.btn:hover{border-color:var(--ink-3)}
+.btn.primary{background:var(--worker);border-color:var(--worker);color:#1A1208;font-weight:600}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn[aria-pressed="true"]{background:var(--ink);color:var(--ground);border-color:var(--ink)}
+.btn:disabled{opacity:.4;cursor:default}
+.tog{display:flex;align-items:flex-start;gap:9px;padding:7px 9px;border:1px solid var(--hair);border-radius:5px;background:var(--surface-2);
+  text-align:left;width:100%}
+.tog .bx{width:13px;height:13px;border:1.5px solid var(--ink-3);border-radius:3px;margin-top:2px;flex:none;display:grid;place-items:center}
+.tog[aria-pressed="true"] .bx{background:var(--alarm);border-color:var(--alarm)}
+.tog[aria-pressed="true"] .bx::after{content:"";width:5px;height:5px;background:var(--surface);border-radius:1px}
+.tog .tt{font-size:12px;font-weight:500;line-height:1.3}
+.tog .td{font-size:11px;color:var(--ink-3);line-height:1.35;margin-top:2px}
+.tog.ch[aria-pressed="true"] .bx{background:var(--c);border-color:var(--c)}
+.speed{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--ink-2)}
+.speed input{flex:1;accent-color:var(--worker)}
+.legend{display:grid;grid-template-columns:1fr 1fr;gap:7px 10px;font-size:11.5px;color:var(--ink-2)}
+.legend div{display:flex;align-items:center;gap:7px}
+.sw{width:11px;height:11px;flex:none}
+.sw.box{background:var(--worker)}
+.sw.oct{background:var(--reviewer);transform:rotate(45deg) scale(.8)}
+.sw.puck{background:var(--monitor);border-radius:50%;height:7px}
+.sw.fn{border:1.5px dashed var(--fn)}
+.sw.ln{height:3px;border-radius:2px}
+.note{font-size:11.5px;color:var(--ink-3);line-height:1.5}
+.note code{font-family:var(--mono);font-size:10.5px;color:var(--ink-2)}
+
+.stage{position:relative;min-width:0;min-height:0;background:radial-gradient(ellipse at 50% 30%,#141A23 0%,var(--ground) 70%)}
+#view{position:absolute;inset:0}
+#view canvas{display:block}
+.lblroot{position:absolute;inset:0;pointer-events:none}
+.lbl{font-family:var(--mono);font-size:10px;color:var(--ink-2);white-space:nowrap;text-shadow:0 1px 3px #000,0 0 8px #000;
+  padding:1px 4px;border-radius:3px;transition:color .2s,background .2s}
+.lbl.on{color:var(--ink);background:rgba(20,24,32,.85)}
+.lbl.stg{font-family:var(--disp);font-variation-settings:"wdth" 118;font-weight:700;font-size:12.5px;color:var(--ink);letter-spacing:.01em}
+.lbl.stg i{font-style:normal;font-family:var(--mono);font-weight:400;font-size:9.5px;color:var(--ink-3);margin-right:6px;letter-spacing:.08em}
+.lbl.store{font-size:10.5px;color:var(--notes)}
+.lbl.model{font-size:10px;color:var(--ink-2);text-align:center;line-height:1.3}
+.lbl.model em{display:block;font-style:normal;font-size:9px;color:var(--ink-3)}
+.lbl.bubble{font-size:10.5px;color:var(--ink);background:rgba(20,24,32,.92);border:1px solid var(--hair);padding:3px 7px;border-radius:4px;max-width:260px;white-space:normal;line-height:1.35}
+.lbl.ag{opacity:0;transition:opacity .2s,color .2s,background .2s}
+.lbl.ag.on,.showlbl .lbl.ag,.lbl.ag.fixed{opacity:1}
+.hud{position:absolute;left:12px;top:12px;display:flex;flex-direction:column;gap:6px;pointer-events:none;max-width:calc(100% - 24px)}
+.now{background:rgba(20,24,32,.88);border:1px solid var(--hair);border-radius:6px;padding:8px 11px;backdrop-filter:blur(6px);
+  display:flex;flex-direction:column;gap:2px;max-width:440px}
+.now .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+.now .t{font-size:13px;font-weight:500}
+.now .d{font-family:var(--mono);font-size:11px;color:var(--ink-2)}
+.vbtns{position:absolute;right:12px;top:12px;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.vbtns .btn{background:rgba(20,24,32,.88)}
+.vbtns .btn[aria-pressed="true"]{background:var(--ink);color:var(--ground)}
+
+.bottom{grid-column:1/-1;border-top:1px solid var(--hair);background:var(--surface);display:flex;flex-direction:column}
+.stepper{display:flex;gap:1px;background:var(--hair-2);overflow-x:auto}
+.sb{flex:1 0 108px;background:var(--surface);border:0;padding:8px 11px 9px;text-align:left;display:flex;flex-direction:column;gap:1px;
+  border-top:2px solid transparent;transition:background .15s}
+.sb:hover{background:var(--surface-2)}
+.sb .n{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--ink-3)}
+.sb .l{font-size:12.5px;font-weight:500}
+.sb .s{font-family:var(--mono);font-size:9.5px;color:var(--ink-3)}
+.sb[data-st="active"]{border-top-color:var(--worker);background:var(--surface-2)}
+.sb[data-st="active"] .s{color:var(--worker)}
+.sb[data-st="done"]{border-top-color:var(--monitor)}
+.sb[data-st="done"] .s{color:var(--monitor)}
+.sb[data-st="cleared"]{border-top-color:var(--alarm)}
+.sb[data-st="cleared"] .s{color:var(--alarm)}
+.sb[aria-current="true"]{box-shadow:inset 0 -2px 0 var(--ink)}
+.life{overflow-y:hidden;display:flex;align-items:stretch;gap:1px;background:var(--hair-2);border-top:1px solid var(--hair);overflow-x:auto}
+.life .cap{background:var(--surface);padding:7px 12px;font-family:var(--mono);font-size:10px;color:var(--ink-3);white-space:nowrap;
+  display:flex;align-items:center;letter-spacing:.04em;min-width:220px}
+.life .cap b{color:var(--ink);font-weight:500;margin-left:6px}
+.ls{flex:1 0 118px;background:var(--surface);padding:6px 10px;display:flex;flex-direction:column;gap:0;transition:background .15s}
+.ls .n{font-family:var(--mono);font-size:9px;color:var(--ink-3);letter-spacing:.08em}
+.ls .t{font-size:11.5px;color:var(--ink-3)}
+.ls.on{background:var(--surface-3)}
+.ls.on .t{color:var(--ink)}
+.ls.on .n{color:var(--worker)}
+.ls.fail.on .n,.ls.fail.on .t{color:var(--alarm)}
+.ls.past .t{color:var(--ink-2)}
+.life.det .ls{opacity:.3}
+
+.tabs{display:flex;border-bottom:1px solid var(--hair);position:sticky;top:0;background:var(--surface);z-index:2}
+.tab{flex:1;background:none;border:0;padding:11px 4px 9px;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink-3);border-bottom:2px solid transparent}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--worker)}
+.pane{padding:14px;display:flex;flex-direction:column;gap:12px}
+.kind{font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;padding:2px 6px;border-radius:3px;font-weight:600;width:fit-content}
+.kind.worker{background:#2B2217;color:var(--worker)}
+.kind.reviewer{background:#16252F;color:var(--reviewer)}
+.kind.monitor{background:#132723;color:var(--monitor)}
+.kind.fn{background:var(--surface-3);color:var(--fn)}
+.kind.store{background:#221D33;color:var(--notes)}
+.kind.alarm{background:#2B1A16;color:var(--alarm)}
+h2{font-family:var(--disp);font-variation-settings:"wdth" 114;font-weight:700;font-size:20px;line-height:1.15;letter-spacing:-.015em;margin:0;text-wrap:balance}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;padding:10px 0;border-top:1px solid var(--hair-2);border-bottom:1px solid var(--hair-2)}
+.f{display:flex;flex-direction:column;gap:1px;min-width:0}
+.f .fl{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.f .fv{font-family:var(--mono);font-size:11.5px;word-break:break-word}
+.body{font-size:12.5px;color:var(--ink-2);line-height:1.6}
+.mission{font-family:var(--mono);font-size:11px;line-height:1.6;color:var(--ink-2);background:var(--surface-2);border:1px solid var(--hair);
+  border-radius:5px;padding:10px 11px;white-space:pre-wrap;word-break:break-word}
+.prompt{font-family:var(--mono);font-size:10.5px;line-height:1.6;color:var(--ink-3);background:var(--surface-2);border:1px solid var(--hair);
+  border-radius:5px;padding:10px 11px;white-space:pre-wrap;word-break:break-word}
+.prompt .mi{color:var(--worker)}
+.prompt .hn{color:var(--notes)}
+.prompt .dc{color:var(--decis)}
+.prompt .ph{color:var(--ink);font-weight:600}
+.memlist{display:flex;flex-direction:column;gap:1px;background:var(--hair-2);border:1px solid var(--hair);border-radius:5px;overflow:hidden}
+.mem{background:var(--surface);padding:9px 11px;display:flex;flex-direction:column;gap:3px;border-left:3px solid var(--notes)}
+.mem.empty{border-left-color:var(--hair);color:var(--ink-3);font-size:11.5px}
+.mem .mh{display:flex;gap:8px;align-items:baseline}
+.mem .ms{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.mem .ma{font-size:12px;font-weight:600}
+.mem .mt{font-size:11.5px;color:var(--ink-2);line-height:1.45}
+.mem .mf{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);line-height:1.5;word-break:break-word}
+.mem.dec{border-left-color:var(--decis)}
+.log{font-family:var(--mono);font-size:10.5px;display:flex;flex-direction:column;gap:1px;background:var(--hair-2);border:1px solid var(--hair);border-radius:5px;overflow:hidden}
+.ev{background:var(--surface);padding:6px 9px;display:grid;grid-template-columns:44px 1fr auto;gap:2px 8px;border-left:3px solid var(--c,var(--ink-3))}
+.ev .tm{color:var(--ink-3)}
+.ev .ag{color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ev .st{text-transform:uppercase;font-size:9.5px;letter-spacing:.06em}
+.ev .st.running{color:var(--worker)} .ev .st.done{color:var(--monitor)} .ev .st.failed{color:var(--alarm)} .ev .st.system{color:var(--notes)}
+.ev .dt{grid-column:2/-1;color:var(--ink-3);line-height:1.4}
+.ev.sys{border-left-color:var(--notes);background:var(--surface-2)}
+.callout{border-left:3px solid var(--worker);background:var(--surface-2);padding:9px 11px;border-radius:0 5px 5px 0;font-size:11.5px;color:var(--ink-2);line-height:1.5}
+.callout b{color:var(--ink);font-weight:600}
+.callout.warn{border-left-color:var(--alarm)}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{font-family:var(--mono);font-size:10.5px;padding:3px 8px;border-radius:99px;border:1px solid var(--hair);background:var(--surface-2)}
+button.chip:hover{border-color:var(--ink-3)}
+.tbl{width:100%;border-collapse:collapse;font-size:11.5px}
+.tbl td,.tbl th{padding:5px 6px;border-bottom:1px solid var(--hair-2);text-align:left;vertical-align:top}
+.tbl th{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:500}
+.tbl td.m{font-family:var(--mono);font-size:10.5px}
+.done-banner{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);background:rgba(20,24,32,.94);border:1px solid var(--monitor);
+  border-radius:6px;padding:8px 14px;font-size:12.5px;display:flex;gap:10px;align-items:center;white-space:nowrap}
+.done-banner b{color:var(--monitor);font-family:var(--mono);font-size:10px;letter-spacing:.1em}
+
+@media (max-width:1100px){
+  .app{grid-template-columns:240px minmax(0,1fr) 320px}
+}
+@media (max-width:900px){
+  body{overflow:auto}
+  .app{height:auto;display:flex;flex-direction:column}
+  .top{height:auto;padding:10px 16px;flex-wrap:wrap}
+  .stats{margin-left:0;width:100%}
+  .stage{height:58vh;min-height:360px;order:1}
+  .bottom{order:2}
+  .left{order:3;border-right:0;border-top:1px solid var(--hair)}
+  .right{order:4;border-left:0;border-top:1px solid var(--hair);max-height:none}
+  .side{overflow:visible}
+  .sec{padding-inline:16px}
+  .pane{padding-inline:16px}
+  .done-banner{white-space:normal;width:calc(100% - 32px)}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <header class="top">
+    <div class="brand">Silver Agent Lab<small>backend/app/agents · 3D simulation</small></div>
+    <div class="stats" aria-label="Session counters">
+      <div class="stat"><b id="sTime">0.0s</b><span>sim clock</span></div>
+      <div class="stat"><b id="sLLM">0</b><span>LLM calls</span></div>
+      <div class="stat"><b id="sDet">0</b><span>deterministic</span></div>
+      <div class="stat"><b id="sTok">0</b><span>tokens (sim)</span></div>
+      <div class="stat"><b id="sRep">0</b><span>repairs</span></div>
+      <div class="stat"><b id="sEv">0</b><span>trace events</span></div>
+    </div>
+  </header>
+
+  <aside class="side left" aria-label="Controls">
+    <div class="sec">
+      <p class="lab">Session · facets → member</p>
+      <div class="row">
+        <button class="btn primary" id="bPlay">▶ Run pipeline</button>
+        <button class="btn" id="bStep" title="Run until the next trace event, then pause">Step</button>
+        <button class="btn" id="bReset">Reset</button>
+      </div>
+      <div class="speed"><span>speed</span><input id="speed" type="range" min="-2" max="2" step="1" value="0" aria-label="Simulation speed"><b id="speedV">1×</b></div>
+    </div>
+    <div class="sec">
+      <p class="lab">Inject events</p>
+      <button class="tog" id="fReview" aria-pressed="false"><span class="bx"></span><span><div class="tt">Reviewer raises findings</div><div class="td">Join and Notebook reviewers reject once; each crew gets exactly one repair round.</div></span></button>
+      <button class="tog" id="fDdl" aria-pressed="false"><span class="bx"></span><span><div class="tt">CREATE TABLE fails</div><div class="td">Warehouse error; the Provisioning Monitor repairs, <code>validate_ddl</code> re-checks it.</div></span></button>
+      <button class="tog" id="fGw" aria-pressed="false"><span class="bx"></span><span><div class="tt">Gateway transport failure</div><div class="td">Pass 2 of the Mapping Author retries on MODEL_FALLBACK (claude-sonnet-5).</div></span></button>
+      <p class="note">Changes apply the next time a stage runs.</p>
+    </div>
+    <div class="sec">
+      <p class="lab">Show channels</p>
+      <button class="tog ch" id="c1" aria-pressed="true" style="--c:var(--notes)"><span class="bx"></span><span><div class="tt">1 · agentMemory</div><div class="td">Stage-to-stage handoff notes</div></span></button>
+      <button class="tog ch" id="c2" aria-pressed="true" style="--c:var(--decis)"><span class="bx"></span><span><div class="tt">2 · mappingMemory</div><div class="td">Pass-to-pass decisions inside Generate</div></span></button>
+      <button class="tog ch" id="c3" aria-pressed="true" style="--c:var(--fn)"><span class="bx"></span><span><div class="tt">3 · agentTrace</div><div class="td">Append-only audit, read by humans only</div></span></button>
+      <button class="tog ch" id="c4" aria-pressed="true" style="--c:var(--ink)"><span class="bx"></span><span><div class="tt">Model calls</div><div class="td">agent → endpoint_for() → model</div></span></button>
+    </div>
+    <div class="sec">
+      <p class="lab">Legend</p>
+      <div class="legend">
+        <div><i class="sw box"></i>worker</div>
+        <div><i class="sw oct"></i>reviewer</div>
+        <div><i class="sw puck"></i>monitor</div>
+        <div><i class="sw fn"></i>plain function</div>
+        <div><i class="sw ln" style="background:var(--notes)"></i>handoff note</div>
+        <div><i class="sw ln" style="background:var(--decis)"></i>decision</div>
+        <div><i class="sw ln" style="background:var(--ink)"></i>model call</div>
+        <div><i class="sw ln" style="background:var(--fn)"></i>trace event</div>
+      </div>
+      <p class="note">Wireframe agents have <code>task=""</code> and never call a model. Drag to orbit, scroll to zoom, click anything to inspect it.</p>
+    </div>
+  </aside>
+
+  <main class="stage" id="stage">
+    <div id="view"></div>
+    <div class="hud"><div class="now" id="now"><span class="k">Idle</span><span class="t">Press Run pipeline to start the session</span><span class="d">8 stages · 15 registry agents · 3 channels</span></div></div>
+    <div class="vbtns">
+      <button class="btn" id="bFollow" aria-pressed="true">Follow</button>
+      <button class="btn" id="bLabels" aria-pressed="false">All labels</button>
+      <button class="btn" id="bOverview">Overview</button>
+    </div>
+    <div class="done-banner" id="banner" hidden><b>COMPLETE</b><span id="bannerT">Notebook + DQ cells ready.</span></div>
+  </main>
+
+  <aside class="side right" aria-label="Inspector">
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="inspect" aria-selected="true">Inspect</button>
+      <button class="tab" role="tab" data-tab="prompt" aria-selected="false">Prompt</button>
+      <button class="tab" role="tab" data-tab="memory" aria-selected="false">Memory</button>
+      <button class="tab" role="tab" data-tab="trace" aria-selected="false">Trace</button>
+    </div>
+    <div class="pane" id="pane"></div>
+  </aside>
+
+  <footer class="bottom">
+    <nav class="stepper" id="stepper" aria-label="Pipeline stages"></nav>
+    <div class="life" id="life">
+      <div class="cap">agents.run()<b id="lifeWho">—</b></div>
+    </div>
+  </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/renderers/CSS2DRenderer.js"></script>
+<script>
+"use strict";
+/* ======================= DATA (from the Agent Layer page) ======================= */
+const STAGES=["readiness","tables","provision","joins","options","collect","generate","dq"];
+const STAGE_LABEL={readiness:"Readiness",tables:"Tables",provision:"Provision",joins:"Joins",options:"Options",collect:"Collect",generate:"Generate",dq:"DQ"};
+const STEP_NO={readiness:"STEP 0",tables:"STEP 1",provision:"STEP 1b",joins:"STEP 1.5",options:"STEP 2",collect:"STEP 3",generate:"STEP 4",dq:"STEP 5"};
+const ROUTE={
+  orchestration:{m:"claude-opus-5",t:"default"},
+  mapping_generation:{m:"claude-opus-5",t:"capable"},
+  analysis:{m:"claude-opus-5",t:"capable"},
+  review:{m:"gpt-5-6-terra",t:"capable"},
+  validation:{m:"gemini-3-7-flash",t:"fast"},
+  feedback:{m:"gpt-6-astra",t:"capable"},
+  kb_ask:{m:"gemini-3-5-flash",t:"fast"},
+  compression:{m:"gemini-3-8-flash",t:"fast"}
+};
+const MODELS=["gemini-3-5-flash","gemini-3-7-flash","gpt-5-6-terra","claude-opus-5","gpt-6-astra","gemini-3-8-flash","claude-sonnet-5"];
+const AGENTS={
+ readiness_auditor:{name:"Readiness Auditor",stage:"readiness",kind:"reviewer",task:"validation",owns:"Governs the Step-0 verdict: does the cited evidence really belong to this source system?",
+  mission:"You are the Readiness Auditor of a silver-mapping pipeline. After the Step-0 requirement checks run, you govern the verdict: judge whether the evidence each check found actually pertains to the named source system, and whether the requirements as a whole are sufficient to start a silver mapping. Be skeptical of look-alike evidence — document titles, dictionary rows or table lists that name a DIFFERENT source system are retrieval leaks, not evidence; a check claiming PASS on foreign evidence is unmet. Weigh what matters for mapping quality: bronze tables and the target domain are hard requirements; dictionary, ERD and prior mappings determine confidence. Report concrete, actionable concerns only."},
+ table_scout:{name:"Table Scout",stage:"tables",kind:"monitor",task:"",owns:"Evidence-tagged discovery of candidate bronze tables.",
+  mission:"Deterministic discovery of candidate bronze tables for a source: name match, prior-mapping aliases (git KB), data-dictionary rows, and KB document mentions — each candidate tagged with its evidence."},
+ source_reviewer:{name:"Source Review Agent",stage:"tables",kind:"reviewer",task:"review",owns:"Which candidates truly belong to the source under mapping; rejects look-alikes with reasons.",
+  mission:"You are the Source Review Agent of a silver-mapping pipeline (medallion architecture). You own one decision: which candidate bronze tables truly belong to the source system under mapping.\nYou know how discovery works: candidates arrive via fuzzy paths — direct name match, aliases from prior client mappings in the git knowledge base, normalized data-dictionary rows, and free-text knowledge-base mentions — and the loose alias paths regularly drag in look-alike tables that belong to a different source system.\nJudge every candidate on: (1) naming convention versus the source's documented tables (a vendor layout like Facets CMC_* differs from EDW-style names); (2) evidence strength — prior mapping usage is strongest, dictionary coverage second, a bare KB mention weakest; (3) schema plausibility for the source; (4) fit to the target domain DDL. Reject look-alikes with a short, specific reason. Never invent table names; never reject tables the user added explicitly."},
+ selection_monitor:{name:"Selection Monitor",stage:"tables",kind:"monitor",task:"",owns:"Consistency of the suggestion the user is about to see.",
+  mission:"Deterministic validation of the final table suggestion: every suggested table must be a known candidate, no flagged table may be pre-checked, and an empty suggestion is escalated."},
+ table_provisioner:{name:"Table Provisioner",stage:"provision",kind:"worker",task:"",owns:"Creates the silver target table from the FM DDL — never drops, never overwrites.",
+  mission:"Deterministic provisioning of the silver target table(s): checks once whether {catalog}.silver.<source>_<entity> exists, reuses an empty table as-is, asks the user about a table that already holds data, and otherwise creates the table from the FM DDL in the artifacts volume (name rewritten, IF NOT EXISTS). Never drops or overwrites a table."},
+ provisioning_monitor:{name:"Provisioning Monitor",stage:"provision",kind:"reviewer",task:"analysis",owns:"Diagnoses a failed CREATE TABLE and returns one corrected statement.",
+  mission:"You are the Provisioning Monitor of a silver-mapping pipeline. You watch the Table Provisioner create Delta tables on a Databricks SQL warehouse from an FM DDL file. When a step fails you receive the exact warehouse error and the statement that failed; diagnose the root cause in one sentence and return a corrected statement the provisioner can re-run. Rules: keep it ONE statement; keep `CREATE TABLE IF NOT EXISTS <the same fully-qualified target>`; keep `USING delta`; keep every column (fix syntax — unbalanced quotes, unsupported types, reserved words — never delete columns); NEVER emit DROP, TRUNCATE, DELETE, REPLACE or ALTER; when the error is transient (timeout, warehouse starting) return no statement and ask for a plain retry; when the failure cannot be fixed by changing the statement (missing DDL file, permissions) say so and do not ask for a retry."},
+ join_planner:{name:"Join Planner",stage:"joins",kind:"worker",task:"analysis",owns:"The join plan: ERD > prior mappings > sample overlap > target grain.",
+  mission:"You are the Join Planner Agent of a silver-mapping pipeline. You own the join plan between the selected bronze tables that feed one silver target domain.\nYour evidence, in strict priority order: (1) relationships declared in the source ERD; (2) join conditions proven in prior production mapping notebooks; (3) key-name matches confirmed by sample-value overlap statistics; (4) the target domain's grain — pick the driving table and the join types that preserve it. Never invent columns: every condition must reference columns present in the provided schemas. State confidence honestly (high only with ERD or prior-mapping backing)."},
+ join_monitor:{name:"Join Monitor",stage:"joins",kind:"monitor",task:"",owns:"Every table.column in a condition exists in the collected schemas.",
+  mission:"Deterministic validation of the join plan: every table.column referenced by a join condition must exist in the collected bronze schemas."},
+ join_reviewer:{name:"Join Review Agent",stage:"joins",kind:"reviewer",task:"review",owns:"Grain preservation, fan-out risk, evidence backing, missing joins.",
+  mission:"You are the Join Review Agent of a silver-mapping pipeline. You validate a proposed join plan before it reaches code generation. Check, join by join: (1) every condition references real columns of the stated tables (schemas provided); (2) the join type preserves the target grain — flag inner joins that would drop driving-table rows and left joins inverted against the grain; (3) fan-out risk — many-to-many conditions without a bridge or aggregation; (4) unsupported joins — conditions with no ERD, prior-mapping or sample-overlap backing; (5) missing joins — selected tables left disconnected from the driving table. Approve only a plan you would execute in production."},
+ requirements_auditor:{name:"Requirements Auditor",stage:"collect",kind:"reviewer",task:"validation",owns:"Is the collected bundle sufficient to generate a production notebook from?",
+  mission:"You are the Requirements Auditor of a silver-mapping pipeline. After the orchestrator collects the requirement bundle (data dictionary, existing mappings, ERD, join plan, target FM layout, bronze schemas, sample statistics), you judge whether it is sufficient to generate a production bronze-to-silver notebook. You see section sizes and previews, never raw sample values. Call out concretely what is missing or thin (e.g. no ERD and no prior joins for a multi-table mapping) and whether generation should proceed."},
+ mapping_planner:{name:"Mapping Planner",stage:"generate",kind:"worker",task:"orchestration",owns:"The blueprint every writing pass follows, and the editable spec the user approves first.",
+  mission:"You are the Mapping Planner Agent of a silver-mapping pipeline. Before the Mapping Author writes any code over a large context, you produce the mapping blueprint it follows across passes: per target FM table — the driving bronze table, the joins to use (from the reviewed join plan), a column-level outline (target column ← source expression, from the data dictionary, prior mappings and schemas), the shared temp views every pass reuses, and open questions to tag # REVIEW. Be concrete and complete: the author sees only your blueprint plus its own pass's context slice."},
+ mapping_author:{name:"Mapping Author",stage:"generate",kind:"worker",task:"mapping_generation",owns:"The notebook itself, under the bronze-to-silver-etl skill contract.",
+  mission:"You are the Mapping Author Agent — a senior healthcare data engineer generating production bronze-to-silver Databricks notebooks under the Abacus bronze-to-silver-etl skill contract supplied in each task. You follow the contract exactly, map only evidence-backed columns, tag assumptions with # REVIEW, and never embed literal sample values."},
+ notebook_reviewer:{name:"Notebook Review Agent",stage:"generate",kind:"reviewer",task:"review",owns:"Contract compliance, point by point.",
+  mission:"You are the Notebook Review Agent of a silver-mapping pipeline. You verify a generated bronze-to-silver notebook against the Abacus skill contract, point by point: Databricks notebook source format; shared runtime imports (ng_data_quality grammar, SCDSink, TrimStrings, MatchSchema); temp views named after bronze tables and [domain]_[source]_[fm_table] intermediates; abacus metadata columns populated; deterministic hashes (never monotonically_increasing_id); cleanup order trim -> TrimStrings -> MatchSchema; writes ONLY via SCDSink; must/should severities in the DQ grammar; a final verify_row_counts cell; no literal sample values; no invented columns (schemas provided). Report every violation precisely — the author gets exactly one repair round from your findings."},
+ dq_author:{name:"DQ Author",stage:"dq",kind:"worker",task:"mapping_generation",owns:"ng_data_quality validation cells appended to the notebook.",
+  mission:"You are the DQ Author Agent of a silver-mapping pipeline. You append data-quality validation cells to a generated notebook under the fm-dq-validation-suite conventions: ng_data_quality grammar with must/should severities, apply_dq_rules + flatten_dq_results, and post-merge verify_row_counts. You never invent columns and never include literal data values."},
+ dq_monitor:{name:"DQ Monitor",stage:"dq",kind:"monitor",task:"",owns:"Severities present, rules applied, row counts verified.",
+  mission:"Deterministic validation of the DQ cells: grammar severities present, rules applied, and row-count verification included."}
+};
+/* plain functions (not registry agents) that the crews call */
+const FNS={
+ readiness_checks:{name:"Readiness checks",stage:"readiness",fn:"run_requirement_checks()",body:"Five Step-0 checks: bronze tables exist, FM domain exists, ERD, existing git mapping, KB coverage. Plain code — the Readiness Auditor governs the verdict afterwards."},
+ validate_ddl:{name:"validate_ddl()",stage:"provision",fn:"monitors.validate_ddl()",body:"The only monitor guarding LLM output on its way to executing against the warehouse. Blanks out quoted strings, then rejects anything that is not a single CREATE TABLE IF NOT EXISTS <exact target> USING delta, or that contains DROP / TRUNCATE / DELETE / ALTER / REPLACE / INSERT / UPDATE / MERGE."},
+ user_options:{name:"User options",stage:"options",fn:"wizard step 2",body:"The user picks language, FM target tables and the Jira ticket. Stored on the session root, not the artifact map, but still invalidates collect, generate and dq when changed."},
+ collect_bundle:{name:"collect_bundle()",stage:"collect",fn:"orchestrator.collect()",body:"Collects the requirement bundle: data dictionary, existing mappings, ERD, join plan, target FM layout, bronze schemas, sample statistics."},
+ lint_notebook:{name:"lint_notebook()",stage:"generate",fn:"monitors.lint_notebook()",body:"Rejects a missing # Databricks notebook source header or # COMMAND separators; no SCDSink write; no MatchSchema; no grammar rules; no verify_row_counts; any monotonically_increasing_id or dbutils.widgets."},
+};
+const STAGE_AGENTS={
+ readiness:["readiness_checks","readiness_auditor"],
+ tables:["table_scout","source_reviewer","selection_monitor"],
+ provision:["table_provisioner","validate_ddl","provisioning_monitor"],
+ joins:["join_planner","join_monitor","join_reviewer"],
+ options:["user_options"],
+ collect:["collect_bundle","requirements_auditor"],
+ generate:["mapping_planner","mapping_author","lint_notebook","notebook_reviewer"],
+ dq:["dq_author","dq_monitor"]
+};
+const NOTES={
+ readiness:{agent:"Readiness checks",summary:"facets → member is ready. KB coverage: WARN; Existing git mapping: PASS; ERD: PASS; Bronze tables exist: PASS; FM domain exists: PASS",
+   facts:{notable:"KB coverage: 3 of 9 candidate tables documented",auditor:"sufficient — bronze tables and target domain both confirmed; the ERD backs the member grain"}},
+ tables:{agent:"Source Review Agent",summary:"Kept 6 of 11 candidate(s) for facets → member; prior mappings backed 4; dictionary documents 9.",
+   facts:{suggested:"cmc_meme_member, cmc_mepe_prcs_elig, cmc_subs_subscriber, cmc_mecb_cob, cmc_meel_elig, cmc_meex_exception",rejected:"edw_member_dim (EDW naming, not a Facets CMC_* layout); qnxt_member (different source system)"}},
+ provision:{agent:"Table Provisioner",summary:"Silver target table(s) provisioned in abacus_dev_catalog.silver. The mapping must write (SCDSink) into exactly these tables.",
+   facts:{"silver targets":"fm_member → abacus_dev_catalog.silver.facets_fm_member (created)"}},
+ joins:{agent:"Join Planner + Join Review Agent",summary:"4 join(s) for facets → member. Driving table cmc_meme_member preserves the member grain. Review APPROVED.",
+   facts:{"join plan":"cmc_meme_member left JOIN cmc_mepe_prcs_elig ON meme_ck = meme_ck; cmc_meme_member left JOIN cmc_subs_subscriber ON subs_ck = subs_ck"}},
+ options:{agent:"User options",summary:"Language pyspark; FM target tables fm_member; Jira ticket DE-4172.",facts:{}},
+ collect:{agent:"Requirements Auditor",summary:"Bundle sufficient for generation. ERD and 2 prior mappings both present for a 6-table join.",
+   facts:{sections:"schemas 21.4k, dictionary 18.2k, prior mappings 14.0k, target layout 9.1k, join plan 0.4k"}},
+ generate:{agent:"Mapping Author + Notebook Review Agent",summary:"Notebook generated for facets → member (multipass, 3 pass(es), 38,412 chars). Review APPROVED.",
+   facts:{decisions:"temp view cmc_meme_member created; temp view cmc_mepe_prcs_elig created; wrote fm_member via SCDSink"}},
+ dq:{agent:"DQ Author",summary:"DQ validation cells appended (6,204 chars). Monitor checks passed.",facts:{}}
+};
+const INV={
+ readiness:{fields:null,note:"Readiness holds no artifacts of its own, but changing it clears the notes and artifacts of all seven stages after it."},
+ tables:{fields:"bronzeTables, suggestedTables, tableEvidence, flaggedTables, selectedTables, extraTables"},
+ provision:{fields:"provisioning"},
+ joins:{fields:"joinAnalysis"},
+ options:{fields:null,note:"Options stores its choices on the session root (language, selectedFmTables, jiraTicket) rather than in the artifact map."},
+ collect:{fields:"tasks, bundle, rawArtifacts, bundleAudit, dictionaryCoverage, collectionError"},
+ generate:{fields:"notebook, notebookPath, mappingReview, mappingMemory, mappingSpec"},
+ dq:{fields:"publish, publishPreflight, publishError"}
+};
+const LIFE=[
+ {n:"01",t:"Look up",c:"agent = AGENTS[agent_id]; model = endpoint_for(agent.task)"},
+ {n:"02",t:"Mark running",c:"record(… \"running\") before anything can fail"},
+ {n:"03",t:"Compose",c:"f\"{agent.mission}\\n\\n{prompt}\""},
+ {n:"04",t:"Call",c:"ai_query(agent.task, …) — gateway first"},
+ {n:"05",t:"On failure",c:"record failed, log, re-raise",fail:true},
+ {n:"06",t:"Mark done",c:"record(… \"done\", duration_ms, tokens)"}
+];
+
+/* ======================= THREE SETUP ======================= */
+const COL={worker:0xE0A45F,reviewer:0x7FB9E0,monitor:0x69BAA9,alarm:0xE4866B,notes:0xB9A7EE,decis:0xE6CF78,fn:0x98A4B3,ink:0xE3E8EE,hair:0x28303A};
+const view=document.getElementById('view');
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.setClearColor(0x0B0E13,1);
+view.appendChild(renderer.domElement);
+const lblR=new THREE.CSS2DRenderer();
+lblR.domElement.className='lblroot';
+view.appendChild(lblR.domElement);
+const scene=new THREE.Scene();
+scene.fog=new THREE.Fog(0x0B0E13,70,150);
+const camera=new THREE.PerspectiveCamera(42,1,0.1,400);
+camera.position.set(0,50,52);
+const controls=new THREE.OrbitControls(camera,renderer.domElement);
+controls.target.set(0,3,-3);
+controls.enableDamping=true;controls.dampingFactor=.08;
+controls.maxPolarAngle=Math.PI*0.47;controls.minDistance=10;controls.maxDistance=130;
+
+scene.add(new THREE.HemisphereLight(0xBFD4E8,0x10131A,0.75));
+const dl=new THREE.DirectionalLight(0xffffff,0.75);dl.position.set(20,40,25);scene.add(dl);
+const grid=new THREE.GridHelper(180,90,0x1E2530,0x161B23);grid.position.y=-0.01;scene.add(grid);
+
+function mat(color,opts={}){return new THREE.MeshStandardMaterial(Object.assign({color,roughness:.55,metalness:.15,emissive:color,emissiveIntensity:.08},opts));}
+function label(text,cls,obj,y){const d=document.createElement('div');d.className='lbl '+(cls||'');d.innerHTML=text;const o=new THREE.CSS2DObject(d);o.position.set(0,y||0,0);obj.add(o);return d;}
+function edges(geo,color,op){return new THREE.LineSegments(new THREE.EdgesGeometry(geo),new THREE.LineBasicMaterial({color,transparent:true,opacity:op==null?.9:op}));}
+
+/* glow sprite texture */
+const glowTex=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');const r=g.createRadialGradient(32,32,0,32,32,32);
+  r.addColorStop(0,'rgba(255,255,255,1)');r.addColorStop(.25,'rgba(255,255,255,.7)');r.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=r;g.fillRect(0,0,64,64);return new THREE.CanvasTexture(c);})();
+
+const pickables=[];const nodes={};const stageObj={};
+const O=new THREE.Vector3(0,0,4);const RAD=24;
+const theta=i=>THREE.MathUtils.degToRad(-100+i*200/7);
+const arcPos=(i,r,y)=>new THREE.Vector3(O.x+r*Math.sin(theta(i)),y||0,O.z-r*Math.cos(theta(i)));
+
+/* ---- stage platforms & agents ---- */
+STAGES.forEach((s,i)=>{
+  const g=new THREE.Group();g.position.copy(arcPos(i,RAD));g.rotation.y=-theta(i);scene.add(g);
+  const pgeo=new THREE.CylinderGeometry(4,4.2,0.4,6);
+  const plat=new THREE.Mesh(pgeo,new THREE.MeshStandardMaterial({color:0x151A22,roughness:.8,metalness:.1}));plat.position.y=.2;plat.rotation.y=Math.PI/6;g.add(plat);
+  const rim=edges(pgeo,COL.hair,1);rim.position.copy(plat.position);rim.rotation.copy(plat.rotation);g.add(rim);
+  plat.userData={type:'stage',id:s};pickables.push(plat);
+  const lab=label(`<i>${STEP_NO[s]}</i>${STAGE_LABEL[s]}`,'stg',g,0);lab.parentElement;
+  g.children[g.children.length-1].position.set(0,0.4,4.9);
+  stageObj[s]={g,plat,rim,state:'pending',lbl:lab};
+  const ids=STAGE_AGENTS[s];const n=ids.length;const sp=n>3?1.95:2.35;
+  ids.forEach((id,j)=>{
+    const ag=AGENTS[id];const isFn=!ag;const kind=isFn?'fn':ag.kind;const det=isFn||ag.task==="";
+    const color=isFn?COL.fn:COL[kind];
+    const ng=new THREE.Group();ng.position.set((j-(n-1)/2)*sp,0.4,-0.2);g.add(ng);
+    let geo;
+    if(kind==='worker')geo=new THREE.BoxGeometry(1.05,1.05,1.05);
+    else if(kind==='reviewer')geo=new THREE.OctahedronGeometry(.78);
+    else if(kind==='monitor')geo=new THREE.CylinderGeometry(.72,.72,.32,28);
+    else geo=new THREE.BoxGeometry(.8,.5,.8);
+    const m=mat(color,det?{transparent:true,opacity:.28,emissiveIntensity:.15}:{});
+    const mesh=new THREE.Mesh(geo,m);mesh.position.y=kind==='monitor'?1.1:1.35;ng.add(mesh);
+    if(det){const e=edges(geo,color,isFn?.55:.95);mesh.add(e);if(isFn){e.material=new THREE.LineDashedMaterial({color,dashSize:.12,gapSize:.08,transparent:true,opacity:.8});e.computeLineDistances();}}
+    const ped=new THREE.Mesh(new THREE.CylinderGeometry(.55,.65,.25,18),new THREE.MeshStandardMaterial({color:0x1D232D,roughness:.9}));ped.position.y=.13;ng.add(ped);
+    const halo=new THREE.Mesh(new THREE.RingGeometry(.85,1.0,40),new THREE.MeshBasicMaterial({color,transparent:true,opacity:0,side:THREE.DoubleSide}));
+    halo.rotation.x=-Math.PI/2;halo.position.y=.28;ng.add(halo);
+    const lbl=label(isFn?FNS[id].name:ag.name,'ag',ng,0);ng.children[ng.children.length-1].position.set(0,2.45,0);
+    mesh.userData={type:'agent',id};pickables.push(mesh);
+    nodes[id]={id,g:ng,mesh,halo,lbl,kind,det,isFn,color,stage:s,status:'idle',last:'',calls:0,base:mesh.position.y,spin:0};
+  });
+});
+/* warehouse behind provision */
+const WH=(()=>{const g=new THREE.Group();g.position.copy(arcPos(2,RAD+7.5));scene.add(g);
+  for(let k=0;k<3;k++){const c=new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.1,.55,28),mat(0x3A4553,{emissiveIntensity:.05}));c.position.y=.4+k*.66;g.add(c);{const e=edges(c.geometry,0x55616F,.7);e.position.copy(c.position);g.add(e);}}
+  label('SQL warehouse','ag',g,0);g.children[g.children.length-1].position.set(0,2.8,0);
+  g.userData={type:'warehouse'};g.children[0].userData={type:'store',id:'warehouse'};pickables.push(g.children[0]);
+  return {g,p:arcPos(2,RAD+7.5,1.4),mesh:g.children[0]};})();
+
+/* ---- channel 1: agentMemory rail ---- */
+const MEMR=14.5;
+const rail=new THREE.Mesh(new THREE.RingGeometry(MEMR-1.1,MEMR+1.1,96,1,THREE.MathUtils.degToRad(-18),THREE.MathUtils.degToRad(216)),new THREE.MeshStandardMaterial({color:0x1B1726,roughness:.7,side:THREE.DoubleSide}));
+rail.rotation.x=-Math.PI/2;rail.position.set(O.x,.06,O.z);scene.add(rail);
+{const e=edges(rail.geometry,COL.notes,.25);e.rotation.copy(rail.rotation);e.position.copy(rail.position);scene.add(e);}
+rail.userData={type:'store',id:'agentMemory'};pickables.push(rail);
+{const o=new THREE.Object3D();o.position.copy(O).setY(.3);o.position.z+=MEMR-4;scene.add(o);label('session.agentMemory<br><span style="color:#77838F">channel 1 · handoff notes</span>','store',o,0);}
+const slots={};
+STAGES.forEach((s,i)=>{
+  const t=new THREE.Mesh(new THREE.BoxGeometry(2.6,.34,1.4),mat(COL.notes,{emissiveIntensity:.35}));t.position.copy(arcPos(i,MEMR,.45));t.rotation.y=-theta(i);t.scale.setScalar(.001);scene.add(t);
+  t.userData={type:'note',id:s};pickables.push(t);
+  const socket=edges(new THREE.BoxGeometry(2.7,.02,1.5),COL.notes,.3);socket.position.copy(arcPos(i,MEMR,.3));socket.rotation.y=-theta(i);scene.add(socket);
+  slots[s]={t,on:false,target:.001};
+});
+/* ---- channel 2: mappingMemory tower behind generate ---- */
+const MM={p:arcPos(6,RAD+7.5),chips:[]};
+{const base=new THREE.Mesh(new THREE.CylinderGeometry(1.6,1.8,.4,6),new THREE.MeshStandardMaterial({color:0x1D1B12,roughness:.8}));base.position.copy(MM.p).setY(.2);scene.add(base);
+ const e=edges(base.geometry,COL.decis,.5);e.position.copy(base.position);scene.add(e);base.userData={type:'store',id:'mappingMemory'};pickables.push(base);MM.base=base;
+ const o=new THREE.Object3D();o.position.copy(MM.p).setY(0);scene.add(o);label('session.mappingMemory<br><span style="color:#77838F">channel 2 · decisions[-60:]</span>','store',o,0);o.children[0].element.style.color='#E6CF78';o.children[0].position.set(0,0,2.6);}
+function addChip(kind){const i=MM.chips.length;const c=new THREE.Mesh(new THREE.BoxGeometry(kind==='bp'?2.4:1.9,.22,kind==='bp'?2.4:1.9),mat(kind==='bp'?0xB8A866:COL.decis,{emissiveIntensity:.3}));
+  c.position.set(MM.p.x,.55+i*.3,MM.p.z);c.rotation.y=i*.35;c.scale.setScalar(.001);c.userData={grow:1};scene.add(c);MM.chips.push(c);}
+/* ---- channel 3: agentTrace tower ---- */
+const TR={p:new THREE.Vector3(O.x,0,O.z-RAD-10),rings:[]};
+{const col=new THREE.Mesh(new THREE.CylinderGeometry(.35,.35,14,12),new THREE.MeshStandardMaterial({color:0x1D232D}));col.position.copy(TR.p).setY(7);scene.add(col);
+ const base=new THREE.Mesh(new THREE.CylinderGeometry(2.2,2.4,.4,32),new THREE.MeshStandardMaterial({color:0x151A22}));base.position.copy(TR.p).setY(.2);scene.add(base);
+ {const e=edges(base.geometry,COL.fn,.4);e.position.copy(base.position);scene.add(e);}
+ base.userData={type:'store',id:'agentTrace'};pickables.push(base);col.userData={type:'store',id:'agentTrace'};pickables.push(col);
+ const o=new THREE.Object3D();o.position.copy(TR.p);scene.add(o);label('session.agentTrace<br><span style="color:#77838F">channel 3 · append-only · UI polls 2.5s</span>','store',o,0);o.children[0].element.style.color='#C9D1DA';o.children[0].position.set(0,-.2,3.2);
+ /* activity card screen */
+ const scr=new THREE.Mesh(new THREE.PlaneGeometry(5,3.2),new THREE.MeshBasicMaterial({color:0x141820,transparent:true,opacity:.9,side:THREE.DoubleSide}));
+ scr.position.set(TR.p.x+5.2,6,TR.p.z+.8);scr.rotation.y=-.35;scene.add(scr);const se=edges(scr.geometry,COL.fn,.6);scr.add(se);
+ const so=new THREE.Object3D();scr.add(so);label('Agent activity card<br><span style="color:#77838F">read-only, for humans</span>','ag',so,0);
+ scr.userData={type:'store',id:'agentTrace'};pickables.push(scr);}
+function addRing(color){const i=TR.rings.length;const r=new THREE.Mesh(new THREE.TorusGeometry(.95,.09,8,40),mat(color,{emissiveIntensity:.5}));
+  r.rotation.x=Math.PI/2;r.position.set(TR.p.x,.6+(i%44)*.3,TR.p.z);r.scale.setScalar(.001);r.userData={grow:1};scene.add(r);TR.rings.push(r);
+  if(TR.rings.length>44){const old=TR.rings.shift();scene.remove(old);TR.rings.forEach((q,k)=>q.position.y=.6+k*.3);}}
+
+/* ---- model router ---- */
+const HUB=new THREE.Vector3(O.x,10,O.z-4);
+const hubG=new THREE.Group();hubG.position.copy(HUB);scene.add(hubG);
+const hubT=new THREE.Mesh(new THREE.TorusGeometry(1.6,.14,12,60),mat(COL.ink,{emissiveIntensity:.25}));hubG.add(hubT);
+const hubT2=new THREE.Mesh(new THREE.TorusGeometry(1.1,.08,12,50),mat(0x77838F,{emissiveIntensity:.25}));hubT2.rotation.x=Math.PI/2;hubG.add(hubT2);
+hubT.userData={type:'store',id:'router'};pickables.push(hubT);
+{const o=new THREE.Object3D();hubG.add(o);label('endpoint_for(task)<em>8 task routes · settings.model_*</em>','model',o,0);o.position.y=-2.6;}
+const modelNodes={};
+MODELS.forEach((m,i)=>{
+  const fb=m==='claude-sonnet-5';
+  const a=Math.PI*(0.08+0.84*i/6);const p=new THREE.Vector3(HUB.x-Math.cos(a)*11,HUB.y+(fb?4:6.5),HUB.z-Math.sin(a)*6-2);
+  const used=['claude-opus-5','gpt-5-6-terra','gemini-3-7-flash'].includes(m)||fb;
+  const col=m.startsWith('claude')?COL.worker:m.startsWith('gpt')?COL.reviewer:COL.monitor;
+  const s=new THREE.Mesh(new THREE.IcosahedronGeometry(fb?.9:1.2,1),mat(col,{emissiveIntensity:used?.3:.06,transparent:!used,opacity:used?1:.35,flatShading:true}));
+  s.position.copy(p);scene.add(s);s.userData={type:'model',id:m};pickables.push(s);
+  if(fb){const r=new THREE.Mesh(new THREE.TorusGeometry(1.5,.05,8,40),new THREE.MeshBasicMaterial({color:COL.alarm,transparent:true,opacity:.5}));s.add(r);}
+  const routes=Object.keys(ROUTE).filter(k=>ROUTE[k].m===m);
+  const o=new THREE.Object3D();s.add(o);o.position.y=-2.1;
+  label(`${m}<em>${fb?'MODEL_FALLBACK':routes.join(' · ')||'—'}</em>`,'model',o,0);
+  modelNodes[m]={mesh:s,p,col,used,base:p.y,flash:0};
+  /* faint route line hub→model */
+  const lg=new THREE.BufferGeometry().setFromPoints([HUB,p]);scene.add(new THREE.Line(lg,new THREE.LineBasicMaterial({color:0x2A323D,transparent:true,opacity:fb?.35:.6})));
+});
+
+/* ======================= SIM CLOCK / CANCEL ======================= */
+let simT=0,playing=false,speed=1,stepOnce=false,gen=0;
+const timers=[];const flows=[];
+class Cancel extends Error{}
+function wait(ms){const g=gen;return new Promise((res,rej)=>timers.push({t:simT+ms,res,rej,g}));}
+function cancelAll(){gen++;timers.splice(0).forEach(t=>t.rej(new Cancel()));flows.splice(0).forEach(f=>{scene.remove(f.spr);scene.remove(f.line);f.rej&&f.rej(new Cancel());});}
+
+const chanOn={1:true,2:true,3:true,4:true};
+const chanCol={1:COL.notes,2:COL.decis,3:COL.fn,4:COL.ink};
+function flow(a,b,ch,dur=900,opt={}){
+  const A=a.clone(),B=b.clone();const mid=A.clone().lerp(B,.5);mid.y+=opt.lift!=null?opt.lift:Math.max(2.5,A.distanceTo(B)*.28);
+  const curve=new THREE.QuadraticBezierCurve3(A,mid,B);const pts=curve.getPoints(48);
+  const color=opt.color||chanCol[ch];const vis=chanOn[ch];
+  const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color,transparent:true,opacity:.75}));
+  line.geometry.setDrawRange(0,0);
+  const spr=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,color,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));
+  spr.scale.setScalar(opt.size||1.3);spr.position.copy(A);
+  line.visible=spr.visible=vis;scene.add(line);scene.add(spr);
+  return new Promise((res,rej)=>flows.push({curve,line,spr,t0:simT,dur,res,rej,done:false,fade:0,ch}));
+}
+function tickFlows(){
+  for(let i=flows.length-1;i>=0;i--){const f=flows[i];
+    if(!f.done){const k=Math.min(1,(simT-f.t0)/f.dur);const e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+      f.spr.position.copy(f.curve.getPoint(e));f.line.geometry.setDrawRange(0,Math.ceil(e*49));
+      if(k>=1){f.done=true;f.fadeT=simT;f.res();}}
+    else{const k=(simT-f.fadeT)/700;f.line.material.opacity=.75*(1-k);f.spr.material.opacity=1-k*1.6;
+      if(k>=1){scene.remove(f.line);scene.remove(f.spr);f.line.geometry.dispose();flows.splice(i,1);}}
+    f.line.visible=f.spr.visible=chanOn[f.ch];
+  }
+}
+function apos(id,dy){const n=nodes[id];const v=new THREE.Vector3();n.mesh.getWorldPosition(v);v.y+=dy||0;return v;}
+function slotPos(s){return arcPos(STAGES.indexOf(s),MEMR,.8);}
+
+/* ======================= STATE / UI ======================= */
+const $=s=>document.querySelector(s);
+const F={review:false,ddl:false,gw:false};
+const stats={llm:0,det:0,tok:0,rep:0,ev:0};
+const trace=[];const memory={};let decisions=[];let blueprint=false;
+let currentPrompt=null;let selected={type:'stage',id:'readiness'};let tab='inspect';let activeStage=null;let follow=true;
+let rng=7;const rand=()=>{rng=(rng*16807)%2147483647;return (rng-1)/2147483646;};
+
+function setStats(){$('#sLLM').textContent=stats.llm;$('#sDet').textContent=stats.det;$('#sTok').textContent=stats.tok.toLocaleString();$('#sRep').textContent=stats.rep;$('#sEv').textContent=stats.ev;}
+function setNow(k,t,d){$('#now').innerHTML=`<span class="k">${k}</span><span class="t">${t}</span><span class="d">${d||''}</span>`;}
+function fmtT(){return (simT/1000).toFixed(1)+'s';}
+
+function setAgent(id,status,detail){const n=nodes[id];n.status=status;if(detail!=null)n.last=detail;
+  n.lbl.classList.toggle('on',status==='running');
+  if(selected.type==='agent'&&selected.id===id&&tab==='inspect')render();}
+function setStage(s,st){stageObj[s].state=st;const rimCol={pending:COL.hair,active:COL.worker,done:COL.monitor,cleared:COL.alarm}[st];
+  stageObj[s].rim.material.color.setHex(rimCol);renderStepper();}
+
+function record(id,status,detail,extra={}){
+  const ag=AGENTS[id];if(!ag)return;
+  const ev={at:simT,stage:ag.stage,agentId:id,agent:ag.name,kind:ag.kind,model:ag.task?ROUTE[ag.task].m:'deterministic',status,detail,...extra};
+  trace.push(ev);stats.ev++;setStats();
+  flow(apos(id,.6),TR.p.clone().setY(1+Math.min(TR.rings.length,43)*.3),3,700,{size:.8,lift:3}).then(()=>addRing(COL[ag.kind])).catch(()=>{});
+  if(tab==='trace')render();
+  if(stepOnce){stepOnce=false;setPlaying(false);}
+}
+function sysEvent(detail){trace.push({at:simT,system:true,detail});if(tab==='trace')render();}
+
+/* ======================= AGENT BEHAVIOURS ======================= */
+const lifeEl=$('#life');
+LIFE.forEach((l,i)=>{const d=document.createElement('div');d.className='ls'+(l.fail?' fail':'');d.id='ls'+i;d.title=l.c;d.innerHTML=`<span class="n">${l.n}</span><span class="t">${l.t}</span>`;lifeEl.appendChild(d);});
+function life(k,who){lifeEl.classList.toggle('det',k===-2);$('#lifeWho').textContent=who||'—';
+  LIFE.forEach((l,i)=>{const e=$('#ls'+i);e.classList.toggle('on',i===k);e.classList.toggle('past',k>=0&&i<k&&i!==4);});}
+
+function composePrompt(id,opt){
+  const ag=AGENTS[id];const idx=STAGES.indexOf(ag.stage);
+  let notes=STAGES.slice(0,idx).filter(s=>memory[s]).map(s=>{const n=memory[s];
+    const f=Object.entries(n.facts).map(([k,v])=>`    · ${k}: ${v}`).join('\n');
+    return `  [${STAGE_LABEL[s]}] ${n.agent}: ${n.summary}${f?'\n'+f:''}`;}).join('\n');
+  let task=opt.taskText||'';
+  let dec='';
+  if(ag.stage==='generate'&&id==='mapping_author'&&opt.pass){
+    dec=decisions.length?'DECISIONS SO FAR (reuse, never recreate):\n'+decisions.map(d=>'  - '+d).join('\n'):'DECISIONS SO FAR: (none yet)';
+  }
+  currentPrompt={id,mission:ag.mission,notes,dec,task,model:ROUTE[ag.task].m,route:ag.task,pass:opt.pass};
+  if(tab==='prompt')render();
+}
+
+async function llm(id,opt={}){
+  const n=nodes[id],ag=AGENTS[id],model=ROUTE[ag.task].m;
+  const idx=STAGES.indexOf(ag.stage);
+  setNow(`${STAGE_LABEL[ag.stage]} · ${ag.kind}${opt.repair?' · repair round':''}`,`${ag.name}${opt.pass?' — '+opt.pass:''}`,`agents.run("${id}") → task "${ag.task}" → ${model}`);
+  life(0,id);setAgent(id,'running');n.calls++;
+  await wait(380);
+  life(1,id);record(id,'running',`Working on ${ag.stage}…`);
+  await wait(320);
+  life(2,id);composePrompt(id,opt);
+  /* handoff notes flow from every earlier slot */
+  const prev=STAGES.slice(0,idx).filter(s=>memory[s]);
+  if(prev.length){const ps=prev.map((s,k)=>wait(k*90).then(()=>flow(slotPos(s),apos(id,.3),1,850,{size:1})));await Promise.all(ps);}
+  if(opt.pass&&opt.pass!=='P0'&&decisions.length){await flow(MM.p.clone().setY(1+MM.chips.length*.3),apos(id,.3),2,800,{size:1.1});}
+  await wait(200);
+  life(3,id);
+  const t0=simT;
+  await flow(apos(id,.5),HUB,4,650,{lift:3,size:1.1});
+  hubSpin=1;
+  if(opt.gwFail){
+    await flow(HUB,modelNodes[model].p,4,600,{lift:1});
+    modelNodes[model].flash=1;setNow('Transport failure','AI Gateway call failed for '+model,'ai_query retries once on MODEL_FALLBACK → claude-sonnet-5');
+    await wait(700);
+    await flow(modelNodes[model].p,HUB,4,450,{lift:1,color:COL.alarm});
+    await flow(HUB,modelNodes['claude-sonnet-5'].p,4,600,{lift:1});
+    modelNodes['claude-sonnet-5'].flash=.6;
+    await wait(1100+rand()*500);
+    await flow(modelNodes['claude-sonnet-5'].p,apos(id,.5),4,900,{lift:2});
+  }else{
+    await flow(HUB,modelNodes[model].p,4,600,{lift:1});
+    modelNodes[model].flash=.6;
+    await wait((opt.long?1600:1000)+rand()*600);
+    await flow(modelNodes[model].p,apos(id,.5),4,900,{lift:2});
+  }
+  const dur=Math.round((simT-t0)*(opt.long?5.5:3.2)+rand()*1500);
+  const tok=Math.round((opt.long?38000:9000)+rand()*(opt.long?22000:12000));
+  life(5,id);
+  stats.llm++;stats.tok+=tok;setStats();
+  const detail=opt.detail||`Produced ${Math.round(900+rand()*3000).toLocaleString()} chars.`;
+  setAgent(id,opt.bad?'findings':'done',detail);
+  record(id,'done',detail,{durationMs:dur,tokens:tok});
+  if(opt.bad)flashNode(id);
+  await wait(250);
+  return {dur,tok};
+}
+async function det(id,detail,opt={}){
+  const n=nodes[id];const isFn=!AGENTS[id];
+  setNow(`${STAGE_LABEL[n.stage]} · ${isFn?'plain function':'deterministic'}`,isFn?FNS[id].name:AGENTS[id].name,opt.sub||'No model call — never reaches run()');
+  life(-2,id);setAgent(id,'running');n.calls++;
+  if(!isFn)record(id,'running',opt.runDetail||`Checking ${n.stage}…`);
+  if(opt.to){await flow(apos(id,.4),opt.to,opt.ch||4,650,{lift:2,color:opt.col});if(opt.back!==false)await flow(opt.to,apos(id,.4),opt.ch||4,600,{lift:2,color:opt.backCol||opt.col});}
+  else await wait(650);
+  stats.det++;setStats();
+  const fail=!!opt.fail;
+  setAgent(id,fail?'failed':'done',detail);
+  if(!isFn)record(id,fail?'failed':'done',detail);
+  if(fail)flashNode(id);
+  await wait(250);
+}
+function flashNode(id){nodes[id].flash=1;}
+async function remember(s){
+  const lead=STAGE_AGENTS[s].map(i=>nodes[i]).filter(n=>n.status==='done'||n.status==='findings').pop()||nodes[STAGE_AGENTS[s][0]];
+  setNow(`${STAGE_LABEL[s]} · remember()`,'Handoff note written to agentMemory','summary ≤ 900 chars · each fact ≤ 500 · conclusions only, never data values');
+  await flow(apos(lead.id,.2),slotPos(s),1,800,{size:1.3});
+  memory[s]=JSON.parse(JSON.stringify(NOTES[s]));
+  if(s==='provision'&&F.ddlHappened)memory[s].facts['monitor repairs']='unbalanced quote in COMMENT on addr_line_1 — repaired, re-validated';
+  if(s==='joins'&&F.joinRepaired)memory[s].summary=memory[s].summary.replace('Review APPROVED.','Review APPROVED after 1 repair round.');
+  slots[s].on=true;slots[s].target=1;
+  if(tab==='memory')render();
+  await wait(300);
+}
+
+/* ======================= PIPELINE SCRIPT ======================= */
+async function runStage(s){
+  activeStage=s;setStage(s,'active');selectIfFollowing(s);
+  STAGE_AGENTS[s].forEach(id=>setAgent(id,'idle',''));
+  if(s==='readiness'){
+    await det('readiness_checks','5 checks: 4 PASS, KB coverage WARN');
+    await llm('readiness_auditor',{detail:'Verdict: sufficient. Evidence belongs to Facets.',taskText:'STEP-0 CHECK RESULTS (5) …\nRespond with strict JSON {verdict, concerns[]}'});
+  }
+  if(s==='tables'){
+    await det('table_scout','11 candidates, evidence-tagged');
+    await llm('source_reviewer',{detail:'Kept 6 of 11; rejected edw_member_dim, qnxt_member.',taskText:'CANDIDATES (11) with evidence tags …\nTARGET DOMAIN DDL …\nRespond with strict JSON {keep[], reject[{table, reason}]}'});
+    await det('selection_monitor','Suggestion consistent with candidates and flags.');
+  }
+  if(s==='provision'){
+    F.ddlHappened=false;
+    setNow('Provision · deterministic','Table Provisioner','Checks abacus_dev_catalog.silver.facets_fm_member, then executes the FM DDL');
+    life(-2,'table_provisioner');setAgent('table_provisioner','running');nodes.table_provisioner.calls++;
+    record('table_provisioner','running','Checking abacus_dev_catalog.silver.facets_fm_member…');
+    await flow(apos('table_provisioner',.4),WH.p,4,700,{lift:2,color:COL.worker});stats.det++;setStats();
+    if(F.ddl){
+      F.ddlHappened=true;WH.flash=1;
+      await flow(WH.p,apos('table_provisioner',.4),4,600,{lift:2,color:COL.alarm});
+      setAgent('table_provisioner','failed','PARSE_SYNTAX_ERROR near COMMENT on addr_line_1');flashNode('table_provisioner');
+      record('table_provisioner','failed','[PARSE_SYNTAX_ERROR] Syntax error at or near \'s\' (line 14) — unbalanced quote in COMMENT');
+      await wait(400);
+      await llm('provisioning_monitor',{detail:'Root cause: unbalanced quote in a COMMENT. Returned one corrected statement.',taskText:'WAREHOUSE ERROR: [PARSE_SYNTAX_ERROR] …\nFAILED STATEMENT: CREATE TABLE IF NOT EXISTS abacus_dev_catalog.silver.facets_fm_member (…)'});
+      await det('validate_ddl','Single CREATE TABLE IF NOT EXISTS, USING delta, no destructive verbs outside quotes.',{sub:'Guards LLM output before it executes on the warehouse'});
+      await det('table_provisioner','Re-ran the repaired statement: created facets_fm_member.',{to:WH.p,sub:'Re-run of the repaired statement',col:COL.worker,backCol:COL.monitor});
+    }else{
+      await flow(WH.p,apos('table_provisioner',.4),4,600,{lift:2,color:COL.monitor});
+      setAgent('table_provisioner','done','Created abacus_dev_catalog.silver.facets_fm_member.');
+      record('table_provisioner','done','Created abacus_dev_catalog.silver.facets_fm_member.');
+    }
+  }
+  if(s==='joins'){
+    F.joinRepaired=false;
+    await llm('join_planner',{detail:'4 joins; driving table cmc_meme_member.',taskText:'BRONZE SCHEMAS (6 tables) …\nERD RELATIONSHIPS …\nPRIOR JOIN CONDITIONS …\nSAMPLE OVERLAP STATS …'});
+    await det('join_monitor','All join columns exist in the collected schemas.');
+    if(F.review){
+      await llm('join_reviewer',{bad:true,detail:'Findings: inner JOIN cmc_meel_elig drops members without eligibility rows.'});
+      stats.rep++;setStats();F.joinRepaired=true;
+      await llm('join_planner',{repair:true,detail:'Repair round: cmc_meel_elig switched to LEFT JOIN.',taskText:'REVIEWER FINDINGS:\n  - inner join on cmc_meel_elig drops driving-table rows\nReturn the corrected plan.'});
+      await det('join_monitor','Repaired plan: all join columns exist. Kept.');
+    }else{
+      await llm('join_reviewer',{detail:'Approved: grain preserved, no fan-out risk.',taskText:'PROPOSED JOIN PLAN (4) …\nBRONZE SCHEMAS …\nRespond with strict JSON {approved, findings[]}'});
+    }
+  }
+  if(s==='options'){
+    await det('user_options','pyspark · fm_member · DE-4172',{sub:'The user chooses — no agent involved'});
+  }
+  if(s==='collect'){
+    await det('collect_bundle','Bundle: 5 sections, 63.1k chars.');
+    await llm('requirements_auditor',{detail:'Bundle sufficient for generation.',taskText:'BUNDLE SECTIONS (sizes + previews, never raw sample values) …'});
+  }
+  if(s==='generate'){
+    decisions=[];blueprint=false;MM.chips.forEach(c=>scene.remove(c));MM.chips=[];
+    await llm('mapping_planner',{pass:'P0',long:true,detail:'Blueprint: 11,842 chars — shared views, driving table, column outline.',taskText:'SCHEMAS (clipped 20k) · TARGET LAYOUT (14k) · DICTIONARY (24k) · PRIORS (18k) · REVIEWED JOIN PLAN\nReturn plain text: SHARED VIEWS, then per FM table …'});
+    await flow(apos('mapping_planner',.3),MM.p.clone().setY(1),2,700);blueprint=true;addChip('bp');
+    const PASSES=[
+      {p:'P1 · Shared setup',dec:['temp view cmc_meme_member created (Shared setup)','temp view cmc_mepe_prcs_elig created (Shared setup)','temp view cmc_subs_subscriber created (Shared setup)']},
+      {p:'P2 · fm_member',dec:['temp view member_facets_fm_member created (fm_member)','wrote fm_member via SCDSink (fm_member)']},
+      {p:'P3 · Verification',dec:[]}];
+    for(const [k,P] of PASSES.entries()){
+      await llm('mapping_author',{pass:P.p,long:true,gwFail:F.gw&&k===1,detail:`${P.p}: section written.`,taskText:`BLUEPRINT (from mappingMemory) …\nCONTEXT SLICE for ${P.p} …\nSKILL CONTRACT: bronze-to-silver-etl …`});
+      if(P.dec.length){setNow('Generate · regex extract','Decisions captured from pass output','createOrReplaceTempView("x") · CREATE OR REPLACE TEMP VIEW x · FM targets written');
+        for(const d of P.dec){await flow(apos('mapping_author',.3),MM.p.clone().setY(1+MM.chips.length*.3),2,500,{size:.9});decisions.push(d);addChip('d');if(tab==='memory'||tab==='prompt')render();}}
+    }
+    await det('lint_notebook','Assembled: 1 header, deduped separators. Lint passed.',{sub:'Deterministic stitch, then the contract lint'});
+    if(F.review){
+      await llm('notebook_reviewer',{bad:true,detail:'Findings: final verify_row_counts cell missing explode reconciliation.'});
+      stats.rep++;setStats();
+      await llm('mapping_author',{repair:true,long:true,detail:'Repair round via compact blueprint prompt.',taskText:'COMPACT BLUEPRINT …\nREVIEWER FINDINGS (1) …\nReturn the corrected notebook.'});
+      await det('lint_notebook','Repair lints no worse than the original: kept.',{sub:'The cheap check re-runs on the repaired artifact'});
+    }else{
+      await llm('notebook_reviewer',{detail:'Approved: contract satisfied point by point.',taskText:'NOTEBOOK (38,412 chars) …\nSKILL CONTRACT checklist …\nRespond with strict JSON {approved, violations[]}'});
+    }
+  }
+  if(s==='dq'){
+    await llm('dq_author',{detail:'DQ cells appended (6,204 chars).',taskText:'NOTEBOOK …\nfm-dq-validation-suite conventions …'});
+    await det('dq_monitor','Severities present, rules applied, row counts verified.');
+  }
+  await remember(s);
+  setStage(s,'done');
+}
+let running=false;
+async function runFrom(i){
+  const myGen=gen;running=true;$('#banner').hidden=true;
+  try{
+    for(let k=i;k<STAGES.length;k++){await runStage(STAGES[k]);}
+    life(-1,'');activeStage=null;
+    setNow('Session complete','All 8 stages done','Notebook + DQ cells stored on the session');
+    $('#bannerT').textContent=`${stats.llm} LLM calls · ${stats.det} deterministic checks · ${stats.rep} repair round${stats.rep===1?'':'s'} · ${stats.ev} trace events`;
+    $('#banner').hidden=false;setPlaying(false);
+    $('#bPlay').textContent='▶ Run again';
+  }catch(e){if(!(e instanceof Cancel))console.error(e);}
+  if(myGen===gen)running=false;
+}
+
+/* ======================= CONTROLS ======================= */
+function setPlaying(p){playing=p;$('#bPlay').textContent=p?'❚❚ Pause':(running?'▶ Resume':'▶ Run pipeline');}
+function resetAll(){
+  cancelAll();running=false;simT=0;
+  Object.assign(stats,{llm:0,det:0,tok:0,rep:0,ev:0});setStats();
+  trace.length=0;for(const k in memory)delete memory[k];decisions=[];blueprint=false;currentPrompt=null;
+  MM.chips.forEach(c=>scene.remove(c));MM.chips=[];TR.rings.forEach(r=>scene.remove(r));TR.rings=[];
+  STAGES.forEach(s=>{setStage(s,'pending');slots[s].on=false;slots[s].target=.001;});
+  Object.keys(nodes).forEach(id=>{nodes[id].calls=0;setAgent(id,'idle','');});
+  life(-1,'');activeStage=null;$('#banner').hidden=true;setPlaying(false);
+  setNow('Idle','Press Run pipeline to start the session','8 stages · 15 registry agents · 3 channels');render();
+}
+$('#bPlay').onclick=()=>{
+  if(!running){ if(STAGES.some(s=>stageObj[s].state!=='pending'))resetAll(); setPlaying(true); runFrom(0); return;}
+  setPlaying(!playing);};
+$('#bStep').onclick=()=>{stepOnce=true;if(!running){resetAll();runFrom(0);}setPlaying(true);};
+$('#bReset').onclick=resetAll;
+const SPEEDS=[.35,.6,1,2,4];
+$('#speed').oninput=e=>{speed=SPEEDS[+e.target.value+2];$('#speedV').textContent=speed+'×';};
+function bindTog(id,fn){const b=$(id);b.onclick=()=>{const v=b.getAttribute('aria-pressed')!=='true';b.setAttribute('aria-pressed',v);fn(v);};}
+bindTog('#fReview',v=>F.review=v);bindTog('#fDdl',v=>F.ddl=v);bindTog('#fGw',v=>F.gw=v);
+bindTog('#c1',v=>chanOn[1]=v);bindTog('#c2',v=>chanOn[2]=v);bindTog('#c3',v=>chanOn[3]=v);bindTog('#c4',v=>chanOn[4]=v);
+bindTog('#bFollow',v=>follow=v);
+bindTog('#bLabels',v=>document.getElementById('stage').classList.toggle('showlbl',v));
+function overviewPos(){const hf=2*Math.atan(Math.tan(THREE.MathUtils.degToRad(camera.fov/2))*camera.aspect);const d=Math.max(62,34/Math.tan(hf/2));return new THREE.Vector3(0,d*.72,d*.72);}
+$('#bOverview').onclick=()=>{follow=false;$('#bFollow').setAttribute('aria-pressed','false');fly(new THREE.Vector3(0,3,-3),overviewPos());};
+controls.addEventListener('start',()=>{camAnim=null;if(follow){follow=false;$('#bFollow').setAttribute('aria-pressed','false');}});
+
+/* invalidation */
+async function invalidate(s){
+  const i=STAGES.indexOf(s);
+  cancelAll();running=false;setPlaying(false);$('#banner').hidden=true;
+  sysEvent(`store.invalidate_downstream(session, "${s}") — cleared ${STAGES.slice(i).map(x=>STAGE_LABEL[x]).join(', ')}`);
+  STAGES.slice(i).forEach(x=>{setStage(x,'cleared');delete memory[x];slots[x].target=.001;slots[x].on=false;STAGE_AGENTS[x].forEach(id=>setAgent(id,'idle',''));});
+  if(i<=6){decisions=[];blueprint=false;MM.chips.forEach(c=>scene.remove(c));MM.chips=[];}
+  setNow('invalidate_downstream',`Changed ${STAGE_LABEL[s]} — ${8-i} stage(s) cleared`,'Artifacts and handoff notes dropped · agentTrace keeps every event (append-only)');
+  render();
+  const g=gen;
+  setPlaying(true);
+  await wait(1400).catch(()=>{});
+  if(g!==gen)return;
+  runFrom(i);
+}
+
+/* stepper */
+const stepper=$('#stepper');
+function renderStepper(){
+  stepper.innerHTML='';
+  STAGES.forEach(s=>{const st=stageObj[s].state;const b=document.createElement('button');b.className='sb';b.dataset.st=st;
+    if(selected.type==='stage'&&selected.id===s)b.setAttribute('aria-current','true');
+    b.innerHTML=`<span class="n">${STEP_NO[s]}</span><span class="l">${STAGE_LABEL[s]}</span><span class="s">${{pending:'pending',active:'running',done:'done',cleared:'cleared'}[st]}</span>`;
+    b.onclick=()=>{select({type:'stage',id:s});focusStage(s);};stepper.appendChild(b);});
+}
+
+/* ======================= CAMERA ======================= */
+let camAnim=null;
+function fly(target,pos){camAnim={t0:performance.now(),dur:1100,ft:controls.target.clone(),fp:camera.position.clone(),tt:target,tp:pos};}
+function focusStage(s){const i=STAGES.indexOf(s);const t=arcPos(i,RAD-2,2.5);const c=arcPos(i,RAD-22,17);fly(t,c);}
+function selectIfFollowing(s){if(follow)focusStage(s);if(follow||selected.type==='stage')select({type:'stage',id:s},true);}
+
+/* ======================= PICKING ======================= */
+const ray=new THREE.Raycaster();const mouse=new THREE.Vector2();let downAt=null;let hoverId=null;
+renderer.domElement.addEventListener('pointerdown',e=>downAt=[e.clientX,e.clientY]);
+renderer.domElement.addEventListener('pointerup',e=>{if(!downAt)return;const moved=Math.hypot(e.clientX-downAt[0],e.clientY-downAt[1]);downAt=null;if(moved>5)return;
+  const hit=pick(e);if(hit){select(hit.userData);if(hit.userData.type==='agent'){tabTo('inspect');}}});
+renderer.domElement.addEventListener('pointermove',e=>{const h=pick(e);const id=h?h.userData.id:null;renderer.domElement.style.cursor=h?'pointer':'grab';
+  if(id!==hoverId){if(hoverId&&nodes[hoverId]&&nodes[hoverId].status!=='running')nodes[hoverId].lbl.classList.remove('on');hoverId=id;if(id&&nodes[id])nodes[id].lbl.classList.add('on');}});
+function pick(e){const r=renderer.domElement.getBoundingClientRect();mouse.x=((e.clientX-r.left)/r.width)*2-1;mouse.y=-((e.clientY-r.top)/r.height)*2+1;
+  ray.setFromCamera(mouse,camera);const hits=ray.intersectObjects(pickables,false);return hits.length?hits[0].object:null;}
+function select(sel,quiet){selected={type:sel.type,id:sel.id};if(!quiet&&sel.type!=='stage'&&tab!=='inspect')tabTo('inspect');render();renderStepper();}
+
+/* ======================= PANELS ======================= */
+const pane=$('#pane');
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>tabTo(t.dataset.tab));
+function tabTo(t){tab=t;document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected',x.dataset.tab===t));render();}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function statusChip(st){const m={idle:['fn','idle'],running:['worker','running'],done:['monitor','done'],failed:['alarm','failed'],findings:['alarm','findings raised']};const v=m[st]||m.idle;return `<span class="kind ${v[0]}">${v[1]}</span>`;}
+
+function render(){
+  if(tab==='inspect')pane.innerHTML=renderInspect();
+  if(tab==='prompt')pane.innerHTML=renderPrompt();
+  if(tab==='memory')pane.innerHTML=renderMemory();
+  if(tab==='trace')pane.innerHTML=renderTrace();
+  pane.querySelectorAll('[data-sel]').forEach(b=>b.onclick=()=>{const [t,i]=b.dataset.sel.split(':');select({type:t,id:i});if(t==='agent'){const n=nodes[i];focusStage(n.stage);}});
+  const inv=pane.querySelector('#bInv');if(inv)inv.onclick=()=>invalidate(inv.dataset.s);
+}
+function renderInspect(){
+  const s=selected;
+  if(s.type==='agent'){
+    const n=nodes[s.id];const ag=AGENTS[s.id];
+    if(!ag){const f=FNS[s.id];return `<span class="kind fn">plain function · not in registry</span><h2>${esc(f.name)}</h2>
+      <div class="fields"><div class="f"><span class="fl">called as</span><span class="fv">${esc(f.fn)}</span></div><div class="f"><span class="fl">stage</span><span class="fv">${n.stage}</span></div>
+      <div class="f"><span class="fl">status</span><span class="fv">${statusChip(n.status)}</span></div><div class="f"><span class="fl">trace</span><span class="fv">no event — not an agent</span></div></div>
+      <p class="body">${esc(f.body)}</p>${n.last?`<div class="callout"><b>Last result.</b> ${esc(n.last)}</div>`:''}`;}
+    const r=ag.task?ROUTE[ag.task]:null;
+    const idx=STAGES.indexOf(ag.stage);
+    return `<span class="kind ${ag.kind}">${ag.kind}</span><h2>${esc(ag.name)}</h2>
+      <div class="fields">
+        <div class="f"><span class="fl">id</span><span class="fv">${s.id}</span></div>
+        <div class="f"><span class="fl">stage</span><span class="fv">${ag.stage}</span></div>
+        <div class="f"><span class="fl">task route</span><span class="fv">${ag.task?`"${ag.task}"`:'"" (deterministic)'}</span></div>
+        <div class="f"><span class="fl">model</span><span class="fv">${r?r.m+' · '+r.t:'deterministic'}</span></div>
+        <div class="f"><span class="fl">status</span><span class="fv">${statusChip(n.status)}</span></div>
+        <div class="f"><span class="fl">calls this session</span><span class="fv">${n.calls}</span></div>
+      </div>
+      ${n.last?`<div class="callout ${n.status==='failed'||n.status==='findings'?'warn':''}"><b>Last result.</b> ${esc(n.last)}</div>`:''}
+      <p class="body"><b style="color:var(--ink)">Owns:</b> ${esc(ag.owns)}</p>
+      ${ag.task?`<p class="body">Receives the handoff notes of ${idx} earlier stage${idx===1?'':'s'} pasted after its mission. It never talks to another agent directly.</p>`:`<p class="body">Called as a plain Python function. It records trace events with <code style="font-family:var(--mono);font-size:10.5px">"model": "deterministic"</code> and never reaches <code style="font-family:var(--mono);font-size:10.5px">run()</code>.</p>`}
+      <p class="lab">Mission · prepended verbatim to every prompt</p><div class="mission">${esc(ag.mission)}</div>`;
+  }
+  if(s.type==='stage'){
+    const st=s.id;const o=stageObj[st];const inv=INV[st];const i=STAGES.indexOf(st);
+    const ag=STAGE_AGENTS[st].map(id=>{const a=AGENTS[id];const k=a?a.kind:'fn';return `<button class="chip" data-sel="agent:${id}" style="border-color:${a?'var(--'+k+')':'var(--hair)'}">${esc(a?a.name:FNS[id].name)}</button>`;}).join('');
+    const note=memory[st];
+    return `<span class="kind ${o.state==='done'?'monitor':o.state==='active'?'worker':o.state==='cleared'?'alarm':'fn'}">${STEP_NO[st]} · ${o.state}</span><h2>${STAGE_LABEL[st]} crew</h2>
+      <div class="chips">${ag}</div>
+      ${note?`<div class="memlist"><div class="mem"><div class="mh"><span class="ms">handoff note</span><span class="ma">${esc(note.agent)}</span></div><div class="mt">${esc(note.summary)}</div></div></div>`:`<p class="note">No handoff note on the session for this stage yet.</p>`}
+      <p class="lab">Session fields reset if this stage changes</p>
+      <p class="body" style="font-family:var(--mono);font-size:11px">${inv.fields?esc(inv.fields):'—'}</p>${inv.note?`<p class="note">${esc(inv.note)}</p>`:''}
+      <div class="callout warn"><b>Go back and change ${STAGE_LABEL[st]}.</b> <code style="font-family:var(--mono);font-size:10.5px">invalidate_downstream</code> clears this stage and the ${7-i} after it, drops their handoff notes, then the crews rebuild on the new conclusions. silverDecisions and deliveryTarget survive.</div>
+      <button class="btn" id="bInv" data-s="${st}" ${o.state==='pending'?'disabled':''}>Change this stage and re-run</button>`;
+  }
+  if(s.type==='model'){const m=s.id;const routes=Object.keys(ROUTE).filter(k=>ROUTE[k].m===m);
+    const users=Object.entries(AGENTS).filter(([,a])=>a.task&&ROUTE[a.task].m===m);
+    return `<span class="kind ${m.startsWith('claude')?'worker':m.startsWith('gpt')?'reviewer':'monitor'}">model endpoint</span><h2>system.ai.${m}</h2>
+      <p class="body">${m==='claude-sonnet-5'?'MODEL_FALLBACK. ai_query retries here once when the AI Gateway call fails in transport.':`Resolved from task route${routes.length>1?'s':''} ${routes.map(r=>`<code style="font-family:var(--mono)">${r}</code>`).join(', ')} through <code style="font-family:var(--mono)">endpoint_for()</code>. Overridable per deployment by env var in app.yaml.`}</p>
+      ${users.length?`<p class="lab">Agents on this model</p><div class="chips">${users.map(([id,a])=>`<button class="chip" data-sel="agent:${id}">${esc(a.name)}</button>`).join('')}</div>`:''}
+      ${m==='gpt-5-6-terra'?'<div class="callout"><b>Cross-model rule.</b> Workers author on claude-opus-5; every reviewer that critiques them sits on gpt-5-6-terra, a different family, so no model grades its own habits.</div>':''}
+      ${m==='claude-opus-5'?'<div class="callout"><b>Why this model for authors.</b> A 5M input-tokens/minute ceiling: whole schemas, DDL and reference notebooks arrive in one prompt.</div>':''}`;}
+  if(s.type==='store'){
+    if(s.id==='router')return `<span class="kind fn">model router</span><h2>endpoint_for(task)</h2><p class="body">No agent names a model. It names a task route, which resolves into whatever settings.model_* currently holds.</p>
+      <table class="tbl"><tr><th>Task key</th><th>Endpoint</th><th>Tier</th></tr>${Object.entries(ROUTE).map(([k,v])=>`<tr><td class="m">${k}</td><td class="m">${v.m}</td><td>${v.t}</td></tr>`).join('')}</table>`;
+    if(s.id==='agentMemory')return `<span class="kind store">channel 1</span><h2>session.agentMemory</h2><p class="body">One compact note per finished stage. Every later LLM agent receives the notes of all preceding stages, concatenated into its prompt by <code style="font-family:var(--mono)">handoff_context()</code>. Summaries are capped at 900 chars and facts at 500; notes carry conclusions and metadata only, never a data value.</p><button class="btn" onclick="tabTo('memory')">Open the notes</button>`;
+    if(s.id==='mappingMemory')return `<span class="kind" style="background:#2A2614;color:var(--decis)">channel 2</span><h2>session.mappingMemory</h2><p class="body">Past 48,000 chars of context, generation splits into passes. After each pass the engine regex-scans the output for temp views and FM writes and appends them to a decisions list (last 60 kept). The next pass gets them as DECISIONS SO FAR, with one instruction: reuse, never recreate.</p><p class="note">${decisions.length} decision(s) · blueprint ${blueprint?'stored':'not yet written'}</p>`;
+    if(s.id==='agentTrace')return `<span class="kind fn">channel 3</span><h2>session.agentTrace</h2><p class="body">Every <code style="font-family:var(--mono)">record()</code> appends one event. No agent ever reads it back. It exists so a human can answer "which agent decided that, on which model?" months later. Invalidation never removes events.</p><button class="btn" onclick="tabTo('trace')">Open the trace (${trace.length})</button>`;
+    if(s.id==='warehouse')return `<span class="kind fn">external</span><h2>Databricks SQL warehouse</h2><p class="body">Where the Table Provisioner executes CREATE TABLE IF NOT EXISTS. Any LLM-repaired statement must pass <code style="font-family:var(--mono)">validate_ddl()</code> before it gets here, so a repair can only fix syntax, never widen its blast radius.</p>`;
+  }
+  if(s.type==='note'){select({type:'stage',id:s.id},true);return renderInspect();}
+  return '';
+}
+function renderPrompt(){
+  if(!currentPrompt)return `<p class="lab">Live prompt</p><p class="body">When an LLM agent runs, this shows the exact string <code style="font-family:var(--mono)">run()</code> sends: the mission first, a blank line, then everything the calling service pasted in. There is no system/user role split.</p>`;
+  const p=currentPrompt;const ag=AGENTS[p.id];
+  return `<div class="row"><span class="kind ${ag.kind}">${ag.kind}</span><span class="note">task "${p.route}" → ${p.model}</span></div><h2>${esc(ag.name)}${p.pass?' · '+esc(p.pass):''}</h2>
+  <div class="prompt"><span class="ph"># mission</span>\n<span class="mi">${esc(p.mission)}</span>\n\n${p.notes?`<span class="ph"># HANDOFF NOTES — handoff_context()</span>\n<span class="hn">${esc(p.notes)}</span>\n\n`:'<span class="ph"># HANDOFF NOTES</span>\n(none — first stage)\n\n'}${p.dec?`<span class="ph"># mappingMemory</span>\n<span class="dc">${esc(p.dec)}</span>\n\n`:''}<span class="ph"># task</span>\n${esc(p.task||'…')}</div>
+  <p class="note">Sizes and schemas are abbreviated here. Sample rows reach the model as mapping evidence and are never logged or echoed.</p>`;
+}
+function renderMemory(){
+  const notes=STAGES.map(s=>memory[s]?`<div class="mem"><div class="mh"><span class="ms">${STAGE_LABEL[s]}</span><span class="ma">${esc(memory[s].agent)}</span></div><div class="mt">${esc(memory[s].summary)}</div>${Object.entries(memory[s].facts).map(([k,v])=>`<div class="mf">${esc(k)}: ${esc(v)}</div>`).join('')}</div>`:'').join('');
+  const dec=decisions.map(d=>`<div class="mem dec"><div class="mf" style="color:var(--ink-2)">${esc(d)}</div></div>`).join('');
+  return `<p class="lab">Channel 1 · session.agentMemory</p><div class="memlist">${notes||'<div class="mem empty">No notes yet. Each crew leaves one when its stage finishes.</div>'}</div>
+  <p class="lab">Channel 2 · session.mappingMemory</p><div class="memlist">${blueprint?'<div class="mem dec"><div class="mh"><span class="ms">blueprint</span><span class="ma">Mapping Planner · 11,842 chars</span></div></div>':''}${dec||(blueprint?'':'<div class="mem empty">Filled during Generate: blueprint, then decisions from each pass.</div>')}</div>`;
+}
+function renderTrace(){
+  if(!trace.length)return `<p class="lab">Channel 3 · session.agentTrace</p><p class="body">Events appear here as agents call <code style="font-family:var(--mono)">record()</code>. This is the Agent activity card, polled every 2.5 s.</p>`;
+  const rows=trace.slice().reverse().slice(0,160).map(e=>{
+    if(e.system)return `<div class="ev sys"><span class="tm">${(e.at/1000).toFixed(1)}s</span><span class="ag">system</span><span class="st system">invalidate</span><span class="dt">${esc(e.detail)}</span></div>`;
+    const c={worker:'var(--worker)',reviewer:'var(--reviewer)',monitor:'var(--monitor)'}[e.kind];
+    const meta=[e.model,e.durationMs?(e.durationMs/1000).toFixed(1)+'s':null,e.tokens?e.tokens.toLocaleString()+' tok':null].filter(Boolean).join(' · ');
+    return `<div class="ev" style="--c:${c}"><span class="tm">${(e.at/1000).toFixed(1)}s</span><span class="ag">${esc(e.agent)}</span><span class="st ${e.status}">${e.status}</span><span class="dt">${esc(e.detail)}<br>${esc(meta)}</span></div>`;}).join('');
+  return `<p class="lab">Channel 3 · session.agentTrace · ${trace.length} events</p><div class="log">${rows}</div>`;
+}
+
+/* ======================= LOOP ======================= */
+let hubSpin=0;let last=performance.now();
+function resize(){const r=view.getBoundingClientRect();renderer.setSize(r.width,r.height);lblR.setSize(r.width,r.height);camera.aspect=r.width/Math.max(1,r.height);camera.updateProjectionMatrix();}
+new ResizeObserver(resize).observe(view);resize();camera.position.copy(overviewPos());
+function loop(now){
+  const dt=Math.min(64,now-last);last=now;
+  if(playing){simT+=dt*speed;
+    for(let i=timers.length-1;i>=0;i--){if(timers[i].t<=simT){const t=timers.splice(i,1)[0];t.res();}}}
+  $('#sTime').textContent=fmtT();
+  tickFlows();
+  const tt=now/1000;
+  for(const id in nodes){const n=nodes[id];
+    const run=n.status==='running';
+    n.mesh.position.y=n.base+(run?Math.sin(tt*4)*.12:0);
+    n.mesh.rotation.y+=(run?2.2:(n.kind==='reviewer'?.35:.12))*dt/1000;
+    n.halo.material.opacity+=((run?.9:(n.status==='done'?.25:0))-n.halo.material.opacity)*.12;
+    n.halo.scale.setScalar(run?1+Math.sin(tt*5)*.08:1);
+    const ae=n.flash>0?COL.alarm:n.color;n.mesh.material.emissive.setHex(ae);
+    n.mesh.material.emissiveIntensity=n.flash>0?.9*n.flash:(run?.55+Math.sin(tt*6)*.15:(n.status==='done'||n.status==='findings'?.2:.06));
+    if(n.flash>0)n.flash=Math.max(0,n.flash-dt/900);
+    const hc=(n.status==='failed'||n.status==='findings')?COL.alarm:n.color;n.halo.material.color.setHex(hc);
+  }
+  for(const s in slots){const t=slots[s].t;const k=t.scale.x+(slots[s].target-t.scale.x)*.15;t.scale.setScalar(Math.max(.001,k));t.visible=k>.01;
+    t.material.emissiveIntensity=.3+(activeStage&&STAGES.indexOf(activeStage)>STAGES.indexOf(s)?Math.sin(tt*3)*.1:0);}
+  [...MM.chips,...TR.rings].forEach(c=>{if(c.userData.grow){const k=c.scale.x+(1-c.scale.x)*.18;c.scale.setScalar(k);if(k>.99){c.scale.setScalar(1);c.userData.grow=0;}}});
+  MM.chips.forEach((c,i)=>c.rotation.y+=.002*(i%2?1:-1));
+  hubG.rotation.y+=(.2+hubSpin*2.5)*dt/1000;hubT.rotation.x=Math.sin(tt*.5)*.3;hubSpin=Math.max(0,hubSpin-dt/1200);
+  for(const m in modelNodes){const M=modelNodes[m];M.mesh.rotation.y+=.3*dt/1000;M.mesh.position.y=M.base+Math.sin(tt*.8+M.p.x)*.25;
+    M.mesh.material.emissive.setHex(M.flash>0&&m!=='claude-sonnet-5'&&F.gw&&M.flash>.7?COL.alarm:M.col);
+    M.mesh.material.emissiveIntensity=(M.used?.3:.06)+M.flash*.9;M.flash=Math.max(0,M.flash-dt/1300);}
+  if(WH.flash>0){WH.mesh.material.emissive.setHex(COL.alarm);WH.mesh.material.emissiveIntensity=WH.flash;WH.flash=Math.max(0,WH.flash-dt/1000);}else{WH.mesh.material.emissiveIntensity=.05;}
+  STAGES.forEach(s=>{const o=stageObj[s];o.rim.material.opacity=o.state==='active'?.7+Math.sin(tt*4)*.3:1;});
+  if(camAnim){const k=Math.min(1,(now-camAnim.t0)/camAnim.dur);const e=1-Math.pow(1-k,3);
+    controls.target.lerpVectors(camAnim.ft,camAnim.tt,e);camera.position.lerpVectors(camAnim.fp,camAnim.tp,e);if(k>=1)camAnim=null;}
+  controls.update();
+  renderer.render(scene,camera);lblR.render(scene,camera);
+  requestAnimationFrame(loop);
+}
+WH.flash=0;
+renderStepper();render();requestAnimationFrame(loop);
+</script>
+
+</body>
+</html>

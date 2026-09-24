@@ -19,6 +19,8 @@ import {
   BarChart3,
   ShieldCheck,
   Workflow,
+  Box,
+  Maximize2,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -517,7 +519,7 @@ export default function AIEngineeringProjectDetail() {
 
   const isGraphify = project.slug === "graphify";
   const isAgentHubMcp = project.slug === "skills-mcp-server";
-  const landscapeLayout = isGraphify || isAgentHubMcp;
+  const landscapeLayout = isGraphify || isAgentHubMcp || Boolean(project.demo);
 
   return (
     <main className="relative w-full min-h-screen bg-[#000000]">
@@ -589,7 +591,50 @@ export default function AIEngineeringProjectDetail() {
               View on GitHub <ArrowUpRight className="w-4 h-4" />
             </Link>
           )}
+
+          {project.demo && (
+            <a
+              href="#demo"
+              className={`inline-flex items-center gap-2 border border-${project.accentText.replace("text-", "")}/30 rounded-full px-6 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors duration-300 ${project.externalUrl ? "ml-3" : ""}`}
+            >
+              <Box className="w-4 h-4" /> Launch 3D simulation
+            </a>
+          )}
         </motion.div>
+
+        {/* Interactive demo */}
+        {project.demo && (
+          <motion.section
+            id="demo"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.7 }}
+            className="mb-16 scroll-mt-24"
+          >
+            <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
+              <h2 className="text-xs font-semibold tracking-widest text-gray-500 uppercase">{project.demo.title}</h2>
+              <a
+                href={project.demo.url}
+                target="_blank"
+                rel="noopener"
+                className={`inline-flex items-center gap-2 text-sm ${project.accentText} hover:text-white transition-colors`}
+              >
+                <Maximize2 className="w-4 h-4" /> Open full screen
+              </a>
+            </div>
+            <p className="text-gray-400 text-sm md:text-base leading-relaxed mb-6 max-w-3xl">{project.demo.caption}</p>
+            <div className="rounded-2xl overflow-hidden border border-white/10 bg-[#0B0E13]">
+              <iframe
+                src={project.demo.url}
+                title={`${project.title}: ${project.demo.title}`}
+                loading="lazy"
+                allow="fullscreen"
+                className="block w-full h-[78vh] min-h-[560px] max-h-[860px] border-0"
+              />
+            </div>
+          </motion.section>
+        )}
 
         {/* Full description */}
         <motion.div

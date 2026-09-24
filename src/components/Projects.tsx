@@ -3,6 +3,9 @@
 import { motion } from "framer-motion";
 import { ArrowUpRight, Database, BrainCircuit, HeartPulse } from "lucide-react";
 import Link from "next/link";
+import { dataEngineeringProjects, aiEngineeringProjects, healthcareProjects } from "@/data/projects";
+
+const projectCount = (n: number) => `${n} project${n === 1 ? "" : "s"}`;
 
 const categories = [
   {
@@ -12,7 +15,7 @@ const categories = [
     title: "Data Engineering",
     description:
       "Large-scale batch pipelines, Medallion architecture, cloud data warehouses, and healthcare data standardization across Databricks, Snowflake, and AWS.",
-    stat: "2 projects",
+    stat: projectCount(dataEngineeringProjects.length),
     color: "from-cyan-500/20 to-blue-600/20",
     border: "hover:border-cyan-500/40",
     accent: "text-cyan-400",
@@ -27,7 +30,7 @@ const categories = [
     title: "AI Engineering",
     description:
       "Knowledge graphs, agent tooling, open-source AI skills, and competition projects pushing the boundaries of intelligent systems.",
-    stat: "2 projects",
+    stat: projectCount(aiEngineeringProjects.length),
     color: "from-violet-500/20 to-fuchsia-600/20",
     border: "hover:border-violet-500/40",
     accent: "text-violet-400",
@@ -42,7 +45,7 @@ const categories = [
     title: "Healthcare",
     description:
       "HEDIS quality measures, EDI X12 processing, CMS interoperability, and payer analytics delivered across 80+ US healthcare clients and major payers.",
-    stat: "4 projects",
+    stat: projectCount(healthcareProjects.length),
     color: "from-emerald-500/20 to-teal-600/20",
     border: "hover:border-emerald-500/40",
     accent: "text-emerald-400",

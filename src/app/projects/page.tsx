@@ -4,6 +4,9 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import { ArrowUpRight, ArrowLeft, Database, BrainCircuit, HeartPulse } from "lucide-react";
+import { dataEngineeringProjects, aiEngineeringProjects, healthcareProjects } from "@/data/projects";
+
+const projectCount = (n: number) => `${n} project${n === 1 ? "" : "s"}`;
 
 const categories = [
   {
@@ -17,7 +20,7 @@ const categories = [
     subtitle: "Engineering",
     description:
       "Large-scale batch pipelines, Medallion architecture, cloud data warehouses, and healthcare data standardization built on Databricks, Snowflake, and AWS.",
-    count: "2 projects",
+    count: projectCount(dataEngineeringProjects.length),
     tags: ["Databricks", "Snowflake", "AWS Redshift", "Delta Lake"],
   },
   {
@@ -31,7 +34,7 @@ const categories = [
     subtitle: "Engineering",
     description:
       "Open-source tooling, agent skills, and competition projects at the intersection of AI, knowledge graphs, and intelligent systems.",
-    count: "2 projects",
+    count: projectCount(aiEngineeringProjects.length),
     tags: ["Knowledge Graphs", "LLM Tooling", "Open Source", "Agents"],
   },
   {
@@ -45,7 +48,7 @@ const categories = [
     subtitle: "Domain Expertise",
     description:
       "HEDIS quality measures, EDI X12 processing, CMS interoperability, and payer analytics delivered across 80+ US healthcare clients, including data from major payers like Aetna, Anthem, and BCBS.",
-    count: "4 projects",
+    count: projectCount(healthcareProjects.length),
     tags: ["HEDIS", "EDI X12", "Interoperability", "Payer Analytics"],
   },
 ];

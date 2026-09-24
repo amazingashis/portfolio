@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import { aiEngineeringProjects } from "@/data/projects";
-import { ArrowUpRight, ArrowLeft, BrainCircuit, Plus } from "lucide-react";
+import { ArrowUpRight, ArrowLeft, BrainCircuit, Plus, Box } from "lucide-react";
 
 export default function AIEngineeringProjectsPage() {
   // Show every project as an equal-width grid card, newest first.
@@ -64,9 +64,16 @@ export default function AIEngineeringProjectsPage() {
                 />
                 <div className="p-8 md:p-10 relative z-10 flex flex-col h-full min-h-[300px] justify-between">
                   <div>
-                    <p className={`text-xs font-semibold tracking-widest uppercase mb-3 ${project.accentText}`}>
-                      {project.category}
-                    </p>
+                    <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                      <p className={`text-xs font-semibold tracking-widest uppercase ${project.accentText}`}>
+                        {project.category}
+                      </p>
+                      {project.demo && (
+                        <span className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full border border-white/15 bg-white/5 text-gray-300">
+                          <Box className="w-3.5 h-3.5" /> Live 3D demo
+                        </span>
+                      )}
+                    </div>
                     <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">{project.title}</h2>
                     <p className="text-gray-400 text-sm md:text-base leading-relaxed">{project.summary}</p>
 

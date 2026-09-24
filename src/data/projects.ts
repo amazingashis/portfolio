@@ -63,6 +63,8 @@ export interface Project {
   limitation?: Limitation;
   /** Detail page: technology labels */
   techStack?: string[];
+  /** Detail page: embedded interactive demo served from /public */
+  demo?: { url: string; title: string; caption: string };
   /** Detail page: MCP tools / resources / prompts */
   mcpTools?: { name: string; description: string }[];
 }
@@ -662,6 +664,12 @@ export const aiEngineeringProjects: Project[] = [
     color: "from-amber-500/15 to-orange-600/15",
     accentBorder: "hover:border-amber-500/40",
     accentText: "text-amber-400",
+    demo: {
+      url: "/demos/silver-agent-lab.html",
+      title: "Interactive 3D Simulation",
+      caption:
+        "Run the pipeline and watch the crews work: handoff notes flow into later prompts, calls route through endpoint_for() to each model, and every record() lands in the trace. Inject a reviewer rejection, a failed CREATE TABLE or a gateway outage, click any agent to read its mission, or change an earlier stage to see invalidate_downstream at work. Drag to orbit, scroll to zoom.",
+    },
     stats: [
       { value: "15", label: "registry agents across 8 pipeline stages" },
       { value: "3", label: "coordination channels, zero agent-to-agent calls" },
