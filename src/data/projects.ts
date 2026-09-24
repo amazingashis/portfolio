@@ -637,6 +637,99 @@ export const aiEngineeringProjects: Project[] = [
       "Central versioning & governance for one source of truth",
     ],
   },
+  {
+    slug: "silver-mapping-agent-layer",
+    title: "Multi-Agent Crew for Automated Bronze-to-Silver Mapping",
+    category: "Multi-Agent System · Databricks · Healthcare Data",
+    summary:
+      "A 15-agent system that automates bronze-to-silver data mapping on Databricks, from table discovery to a reviewed, production-ready notebook with data-quality checks. Each of eight pipeline stages runs a small crew (worker, deterministic monitor, cross-model reviewer) with exactly one repair round, and agents coordinate only through three session stores, never by calling each other.",
+    fullDescription:
+      "Every stage of the bronze→silver mapping pipeline — readiness, table selection, provisioning, joins, options, requirements collection, notebook generation and data quality — runs a small crew instead of one bare LLM call. An agent is not a class with state: it is a frozen dataclass of six fields (id, name, stage, kind, task, mission) held in a 15-entry registry built at import. Calling agents.run() looks up the struct, prepends the agent's standing mission to the caller's prompt, makes one gateway call and records the outcome. Everything that looks like agency lives in the mission text and in the orchestration code that decides which agent runs next.\n\nThere is no message bus and no agent-to-agent API. Coordination happens through three stores on the session. agentMemory carries one compact handoff note per finished stage (summaries capped at 900 characters, facts at 500) into every later agent's prompt. mappingMemory lets the multipass generator talk to itself: a Mapping Planner blueprint, then decisions regex-extracted from each writing pass (temp views created, FM tables written) and fed forward as DECISIONS SO FAR with one instruction, reuse, never recreate. agentTrace is an append-only audit log that no agent reads back; it exists so a human can answer which agent decided what, on which model, months later.\n\nThe crew pattern repeats at every stage: a worker writes the artifact, a free deterministic monitor checks it with regex and set logic, and a reviewer on a different model family (authors on Claude, reviewers on GPT) returns a strict JSON verdict. Findings trigger exactly one repair round, and a repair that lints worse than the original is discarded. Agents name task routes rather than models, so every endpoint can be swapped per deployment by environment variable, with a fallback model on transport failure. The DDL monitor guards the only LLM output that executes against the warehouse, so a repair can fix syntax but never widen its blast radius. Going back to change an earlier stage invalidates every downstream artifact and handoff note so the crews rebuild on new conclusions. Notes carry conclusions and metadata only, never data values, keeping the system inside a HIPAA boundary. An interactive 3D simulation shows the crews, model routing, memory channels, repair rounds and invalidation live.",
+    tags: [
+      "Multi-Agent Systems",
+      "LLM Orchestration",
+      "Databricks",
+      "Python",
+      "Agent Memory",
+      "Cross-Model Review",
+      "AI Gateway",
+      "Delta Lake",
+      "PySpark",
+      "Data Quality",
+      "Healthcare",
+      "Three.js",
+    ],
+    color: "from-amber-500/15 to-orange-600/15",
+    accentBorder: "hover:border-amber-500/40",
+    accentText: "text-amber-400",
+    stats: [
+      { value: "15", label: "registry agents across 8 pipeline stages" },
+      { value: "3", label: "coordination channels, zero agent-to-agent calls" },
+      { value: "1", label: "repair round max, kept only if it lints no worse" },
+    ],
+    useCases: [
+      {
+        iconKey: "Workflow",
+        title: "Worker, monitor, reviewer crews",
+        body: "Each stage pairs an authoring worker with a free deterministic monitor and a reviewer on a different model family, so no model grades its own habits and cheap checks never get skipped.",
+      },
+      {
+        iconKey: "Layers",
+        title: "Handoff notes between stages",
+        body: "A crew leaves one capped note on the session when it finishes; every later agent receives all earlier notes in its prompt, so decisions like the driving table or rejected look-alike tables carry forward.",
+      },
+      {
+        iconKey: "Cpu",
+        title: "Multipass generation with working memory",
+        body: "Large contexts split into passes that share a blueprint and a running decisions list, then assemble deterministically into one Databricks notebook under the bronze-to-silver ETL contract.",
+      },
+      {
+        iconKey: "ShieldCheck",
+        title: "Guarded execution and invalidation",
+        body: "LLM-repaired DDL must pass a validator before touching the warehouse, and changing an earlier wizard step clears every downstream artifact and note so nothing is built on stale conclusions.",
+      },
+      {
+        iconKey: "FileSearch",
+        title: "Full audit trail",
+        body: "Every agent call records stage, model, status, duration and token count to an append-only trace, rendered as a live activity card for humans and persisted with the session.",
+      },
+    ],
+    implementation: [
+      {
+        step: "01",
+        title: "Declare agents as data",
+        description:
+          "A frozen Agent dataclass (id, name, stage, kind, task, mission) and a 15-entry AGENTS registry built at import. The task field names a model-router route, not a model; an empty task marks a deterministic agent that never calls a model.",
+      },
+      {
+        step: "02",
+        title: "One run() for every LLM agent",
+        description:
+          "Look up the agent and endpoint, record a running event before anything can fail, compose mission + prompt as one string, call the AI Gateway with a fallback model, then record done with duration and tokens, or record failed and re-raise.",
+      },
+      {
+        step: "03",
+        title: "Coordinate through session stores",
+        description:
+          "remember() and handoff_context() implement stage-to-stage notes; the mapping engine's blueprint and decisions list implement pass-to-pass memory; record() writes the append-only trace polled by the UI every 2.5 seconds.",
+      },
+      {
+        step: "04",
+        title: "Monitors, one repair round, invalidation",
+        description:
+          "Five deterministic validators (notebook lint, DQ cells, table selection, join columns, DDL) gate every artifact. Reviewer findings trigger one repair; invalidate_downstream clears later stages when the user changes an earlier decision.",
+      },
+    ],
+    techStack: [
+      "Python backend (app/agents: core, memory, monitors)",
+      "Databricks AI Gateway Responses API with ai_query fallback",
+      "Task-keyed model routing (8 routes, env-var overridable)",
+      "Claude authors / GPT reviewers (cross-model review rule)",
+      "Databricks SQL warehouse · Delta tables · PySpark notebooks",
+      "ng_data_quality grammar · SCDSink writes · verify_row_counts",
+      "Three.js 3D simulation of the agent layer",
+    ],
+  },
   // ─── Add new AI Engineering projects above this line ─────────────────────────
 ];
 
