@@ -668,7 +668,7 @@ export const aiEngineeringProjects: Project[] = [
       url: "/demos/silver-agent-lab.html",
       title: "Interactive 3D Simulation",
       caption:
-        "Run the pipeline and watch the crews work: handoff notes flow into later prompts, calls route through endpoint_for() to each model, and every record() lands in the trace. Inject a reviewer rejection, a failed CREATE TABLE or a gateway outage, click any agent to read its mission, or change an earlier stage to see invalidate_downstream at work. Drag to orbit, scroll to zoom.",
+        "Robots mark the agents that call an LLM; wireframe shapes are deterministic checks. Run the pipeline and watch the crews work: handoff notes flow into later prompts, calls route through endpoint_for() to each model, and every record() lands in the trace. Inject a reviewer rejection, a failed CREATE TABLE or a gateway outage, click any agent to read its mission, or change an earlier stage to see invalidate_downstream at work. Drag to orbit, scroll to zoom.",
     },
     stats: [
       { value: "15", label: "registry agents across 8 pipeline stages" },

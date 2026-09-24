@@ -243,8 +243,9 @@ button.chip:hover{border-color:var(--ink-3)}
     <div class="sec">
       <p class="lab">Legend</p>
       <div class="legend">
-        <div><i class="sw box"></i>worker</div>
-        <div><i class="sw oct"></i>reviewer</div>
+        <div><svg width="13" height="14" viewBox="0 0 13 14" aria-hidden="true" style="flex:none"><line x1="6.5" y1="0.5" x2="6.5" y2="2.5" stroke="#E0A45F" stroke-width="1.2"/><circle cx="6.5" cy="1" r="1" fill="#E0A45F"/><rect x="2" y="2.5" width="9" height="5" rx="1.2" fill="#D9DFE6"/><rect x="3.2" y="4" width="6.6" height="2" rx=".6" fill="#0E1219"/><circle cx="5" cy="5" r=".7" fill="#E0A45F"/><circle cx="8" cy="5" r=".7" fill="#E0A45F"/><rect x="2.5" y="8" width="8" height="5.5" rx="1" fill="#E0A45F"/></svg>LLM worker</div>
+        <div><svg width="13" height="14" viewBox="0 0 13 14" aria-hidden="true" style="flex:none"><line x1="6.5" y1="0.5" x2="6.5" y2="2.5" stroke="#7FB9E0" stroke-width="1.2"/><circle cx="6.5" cy="1" r="1" fill="#7FB9E0"/><rect x="2" y="2.5" width="9" height="5" rx="1.2" fill="#D9DFE6"/><rect x="3.2" y="4" width="6.6" height="2" rx=".6" fill="#0E1219"/><circle cx="5" cy="5" r=".7" fill="#7FB9E0"/><circle cx="8" cy="5" r=".7" fill="#7FB9E0"/><rect x="2.5" y="8" width="8" height="5.5" rx="1" fill="#7FB9E0"/></svg>LLM reviewer</div>
+        <div><i class="sw box" style="background:transparent;border:1.5px solid var(--worker)"></i>det. worker</div>
         <div><i class="sw puck"></i>monitor</div>
         <div><i class="sw fn"></i>plain function</div>
         <div><i class="sw ln" style="background:var(--notes)"></i>handoff note</div>
@@ -252,7 +253,7 @@ button.chip:hover{border-color:var(--ink-3)}
         <div><i class="sw ln" style="background:var(--ink)"></i>model call</div>
         <div><i class="sw ln" style="background:var(--fn)"></i>trace event</div>
       </div>
-      <p class="note">Wireframe agents have <code>task=""</code> and never call a model. Drag to orbit, scroll to zoom, click anything to inspect it.</p>
+      <p class="note">Robots are agents that call an LLM through <code>agents.run()</code>. Wireframe shapes have <code>task=""</code> and never call a model. Drag to orbit, scroll to zoom, click anything to inspect it.</p>
     </div>
   </aside>
 
@@ -417,6 +418,50 @@ function mat(color,opts={}){return new THREE.MeshStandardMaterial(Object.assign(
 function label(text,cls,obj,y){const d=document.createElement('div');d.className='lbl '+(cls||'');d.innerHTML=text;const o=new THREE.CSS2DObject(d);o.position.set(0,y||0,0);obj.add(o);return d;}
 function edges(geo,color,op){return new THREE.LineSegments(new THREE.EdgesGeometry(geo),new THREE.LineBasicMaterial({color,transparent:true,opacity:op==null?.9:op}));}
 
+/* ---- LLM agent robot (built from primitives) ---- */
+function buildRobot(kind,color,id){
+  const g=new THREE.Group();g.position.y=.26;g.scale.setScalar(1.3);
+  const parts=[];const glow=[];
+  const add=(geo,m,x,y,z,parent)=>{const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);(parent||g).add(o);parts.push(o);return o;};
+  const shell=new THREE.MeshStandardMaterial({color,roughness:.35,metalness:.45,emissive:color,emissiveIntensity:.08});glow.push(shell);
+  const pale=new THREE.MeshStandardMaterial({color:0xD9DFE6,roughness:.4,metalness:.35,emissive:0xD9DFE6,emissiveIntensity:.04});
+  const dark=new THREE.MeshStandardMaterial({color:0x0E1219,roughness:.3,metalness:.6});
+  const eye=new THREE.MeshBasicMaterial({color});
+  /* base + torso */
+  add(new THREE.CylinderGeometry(.22,.3,.28,16),dark,0,.14,0);
+  const torso=add(new THREE.BoxGeometry(.86,.78,.58),shell,0,.66,0);
+  add(new THREE.BoxGeometry(.5,.3,.02),dark,0,.7,.3);
+  const chest=add(new THREE.CircleGeometry(.08,20),eye,0,.7,.315);
+  /* head */
+  const head=new THREE.Group();head.position.set(0,1.28,0);g.add(head);
+  add(new THREE.CylinderGeometry(.1,.12,.14,12),dark,0,-.2,0,head);
+  add(new THREE.BoxGeometry(.78,.54,.6),pale,0,.08,0,head);
+  add(new THREE.BoxGeometry(.64,.22,.03),dark,0,.1,.31,head);
+  const eL=add(new THREE.SphereGeometry(.06,12,10),eye,-.15,.1,.33,head);
+  const eR=add(new THREE.SphereGeometry(.06,12,10),eye,.15,.1,.33,head);
+  add(new THREE.CylinderGeometry(.09,.09,.1,14),shell,-.43,.08,0,head).rotation.z=Math.PI/2;
+  add(new THREE.CylinderGeometry(.09,.09,.1,14),shell,.43,.08,0,head).rotation.z=Math.PI/2;
+  add(new THREE.CylinderGeometry(.02,.02,.3,8),dark,0,.5,0,head);
+  const tipM=new THREE.MeshBasicMaterial({color});
+  const tip=add(new THREE.SphereGeometry(.075,12,10),tipM,0,.68,0,head);
+  /* arms on shoulder pivots */
+  const arm=(side)=>{const piv=new THREE.Group();piv.position.set(side*.53,.98,0);g.add(piv);
+    add(new THREE.SphereGeometry(.1,12,10),dark,0,0,0,piv);
+    add(new THREE.BoxGeometry(.16,.52,.16),shell,0,-.3,0,piv);
+    add(new THREE.SphereGeometry(.09,12,10),pale,0,-.6,0,piv);return piv;};
+  const aL=arm(-1),aR=arm(1);
+  /* prop: reviewer holds a magnifier, worker holds a document */
+  let prop;
+  if(kind==='reviewer'){prop=new THREE.Group();prop.position.set(0,-.7,.12);aR.add(prop);
+    add(new THREE.TorusGeometry(.17,.035,10,28),dark,0,-.12,0,prop);
+    add(new THREE.CircleGeometry(.15,24),new THREE.MeshBasicMaterial({color:0xBFE3FA,transparent:true,opacity:.35,side:THREE.DoubleSide}),0,-.12,0,prop);
+    add(new THREE.CylinderGeometry(.03,.03,.22,8),dark,0,.06,0,prop);}
+  else{prop=new THREE.Group();prop.position.set(0,-.66,.14);aR.add(prop);
+    add(new THREE.BoxGeometry(.3,.38,.02),pale,0,0,0,prop);
+    for(let k=0;k<3;k++)add(new THREE.BoxGeometry(.2,.025,.01),new THREE.MeshBasicMaterial({color}),0,.1-k*.09,.015,prop);}
+  return {g,parts,shell,eye,tipM,head,aL,aR,chest,torso,eL,eR,prop,base:g.position.y};
+}
+
 /* glow sprite texture */
 const glowTex=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');const r=g.createRadialGradient(32,32,0,32,32,32);
   r.addColorStop(0,'rgba(255,255,255,1)');r.addColorStop(.25,'rgba(255,255,255,.7)');r.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=r;g.fillRect(0,0,64,64);return new THREE.CanvasTexture(c);})();
@@ -441,6 +486,16 @@ STAGES.forEach((s,i)=>{
     const ag=AGENTS[id];const isFn=!ag;const kind=isFn?'fn':ag.kind;const det=isFn||ag.task==="";
     const color=isFn?COL.fn:COL[kind];
     const ng=new THREE.Group();ng.position.set((j-(n-1)/2)*sp,0.4,-0.2);g.add(ng);
+    if(!det){
+      const rb=buildRobot(kind,color,id);ng.add(rb.g);
+      const ped=new THREE.Mesh(new THREE.CylinderGeometry(.62,.72,.25,24),new THREE.MeshStandardMaterial({color:0x1D232D,roughness:.9}));ped.position.y=.13;ng.add(ped);
+      const halo=new THREE.Mesh(new THREE.RingGeometry(.9,1.05,40),new THREE.MeshBasicMaterial({color,transparent:true,opacity:0,side:THREE.DoubleSide}));
+      halo.rotation.x=-Math.PI/2;halo.position.y=.28;ng.add(halo);
+      const lbl=label(ag.name,'ag',ng,0);ng.children[ng.children.length-1].position.set(0,3.6,0);
+      rb.parts.forEach(m=>{m.userData={type:'agent',id};pickables.push(m);});
+      nodes[id]={id,g:ng,mesh:rb.g,robot:rb,halo,lbl,kind,det,isFn,color,stage:s,status:'idle',last:'',calls:0,base:rb.g.position.y,spin:0};
+      return;
+    }
     let geo;
     if(kind==='worker')geo=new THREE.BoxGeometry(1.05,1.05,1.05);
     else if(kind==='reviewer')geo=new THREE.OctahedronGeometry(.78);
@@ -555,7 +610,7 @@ function tickFlows(){
     f.line.visible=f.spr.visible=chanOn[f.ch];
   }
 }
-function apos(id,dy){const n=nodes[id];const v=new THREE.Vector3();n.mesh.getWorldPosition(v);v.y+=dy||0;return v;}
+function apos(id,dy){const n=nodes[id];const v=new THREE.Vector3();n.mesh.getWorldPosition(v);v.y+=(dy||0)+(n.robot?1.35:0);return v;}
 function slotPos(s){return arcPos(STAGES.indexOf(s),MEMR,.8);}
 
 /* ======================= STATE / UI ======================= */
@@ -832,7 +887,7 @@ function renderStepper(){
 /* ======================= CAMERA ======================= */
 let camAnim=null;
 function fly(target,pos){camAnim={t0:performance.now(),dur:1100,ft:controls.target.clone(),fp:camera.position.clone(),tt:target,tp:pos};}
-function focusStage(s){const i=STAGES.indexOf(s);const t=arcPos(i,RAD-2,2.5);const c=arcPos(i,RAD-22,17);fly(t,c);}
+function focusStage(s){const i=STAGES.indexOf(s);const t=arcPos(i,RAD,1.8);const c=arcPos(i,RAD-14,8.5);fly(t,c);}
 function selectIfFollowing(s){if(follow)focusStage(s);if(follow||selected.type==='stage')select({type:'stage',id:s},true);}
 
 /* ======================= PICKING ======================= */
@@ -951,6 +1006,22 @@ function loop(now){
   const tt=now/1000;
   for(const id in nodes){const n=nodes[id];
     const run=n.status==='running';
+    if(n.robot){const r=n.robot;const bad=n.flash>0||n.status==='failed'||n.status==='findings';
+      r.g.position.y=r.base+(run?Math.abs(Math.sin(tt*5))*.1:Math.sin(tt*1.6+n.g.position.x)*.025);
+      r.head.rotation.y=run?Math.sin(tt*2.2)*.35:Math.sin(tt*.6+n.g.position.x)*.12;
+      r.head.rotation.x=run?Math.sin(tt*3.1)*.08:0;
+      if(n.kind==='reviewer'){r.aR.rotation.x+=((run?-1.35+Math.sin(tt*3)*.18:-.25)-r.aR.rotation.x)*.12;r.aL.rotation.x+=((run?Math.sin(tt*2)*.2:0)-r.aL.rotation.x)*.12;}
+      else{r.aR.rotation.x+=((run?-.9+Math.sin(tt*9)*.35:-.2)-r.aR.rotation.x)*.15;r.aL.rotation.x+=((run?-.9-Math.sin(tt*9)*.35:0)-r.aL.rotation.x)*.15;}
+      const ec=bad?COL.alarm:n.color;r.eye.color.setHex(ec);r.tipM.color.setHex(ec);
+      const blink=(Math.sin(tt*2.3+n.g.position.x*3)>.985)?.1:1;r.eL.scale.y=r.eR.scale.y=blink;
+      const s2=run?1+Math.abs(Math.sin(tt*8))*.6:1;r.head.children.forEach(c=>{if(c.material===r.tipM)c.scale.setScalar(s2);});
+      r.shell.emissive.setHex(bad?COL.alarm:n.color);
+      r.shell.emissiveIntensity=n.flash>0?.8*n.flash:(run?.3+Math.sin(tt*6)*.1:(n.status==='done'||n.status==='findings'?.14:.06));
+      n.halo.material.opacity+=((run?.9:(n.status==='done'?.25:0))-n.halo.material.opacity)*.12;
+      n.halo.scale.setScalar(run?1+Math.sin(tt*5)*.08:1);
+      if(n.flash>0)n.flash=Math.max(0,n.flash-dt/900);
+      n.halo.material.color.setHex((n.status==='failed'||n.status==='findings')?COL.alarm:n.color);
+      continue;}
     n.mesh.position.y=n.base+(run?Math.sin(tt*4)*.12:0);
     n.mesh.rotation.y+=(run?2.2:(n.kind==='reviewer'?.35:.12))*dt/1000;
     n.halo.material.opacity+=((run?.9:(n.status==='done'?.25:0))-n.halo.material.opacity)*.12;
