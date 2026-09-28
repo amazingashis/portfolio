@@ -31,9 +31,9 @@ export default function Navbar() {
         {isHome ? (
           <>
             <a href="#experience" className="hover:text-white transition-colors">Experience</a>
-            <a href="#yourssherpa" className="hover:text-white transition-colors">YoursSherpa</a>
             <Link href="/projects" className="hover:text-white transition-colors">Projects</Link>
             <a href="#publications" className="hover:text-white transition-colors">Publications</a>
+            <a href="#yourssherpa" className="hover:text-white transition-colors">YoursSherpa</a>
             <a href="#achievements" className="hover:text-white transition-colors">Achievements</a>
             <a href="#certifications" className="hover:text-white transition-colors">Certifications</a>
           </>
@@ -74,9 +74,9 @@ export default function Navbar() {
             {isHome ? (
               <>
                 <a href="#experience" onClick={close} className="hover:text-white transition-colors">Experience</a>
-                <a href="#yourssherpa" onClick={close} className="hover:text-white transition-colors">YoursSherpa</a>
                 <Link href="/projects" onClick={close} className="hover:text-white transition-colors">Projects</Link>
                 <a href="#publications" onClick={close} className="hover:text-white transition-colors">Publications</a>
+                <a href="#yourssherpa" onClick={close} className="hover:text-white transition-colors">YoursSherpa</a>
                 <a href="#achievements" onClick={close} className="hover:text-white transition-colors">Achievements</a>
                 <a href="#certifications" onClick={close} className="hover:text-white transition-colors">Certifications</a>
               </>

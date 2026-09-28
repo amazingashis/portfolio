@@ -25,8 +25,7 @@ const experiences: ExperienceItem[] = [
     details: [
       "Founded a forward-deployed engineering practice that builds data platforms and AI agents inside client teams, in the client's own cloud.",
       "Set the delivery approach: deterministic code where the rules are clear, AI agents only where work needs reading or judgment, and human approval for anything that sends, pays or commits.",
-      "Built eight reference architectures: RAG and agentic RAG, data engineering automation with a private LLM, workflow agents, MCP servers and skills, warehouses, lakehouses, AI harness and fine-tuning, and analytical dashboards.",
-      "Designed each to run on Databricks, AWS, Azure, Google Cloud, Snowflake or private cloud, with models on private endpoints or open-weight models served with vLLM."
+      "Built eight reference architectures: RAG and agentic RAG, data engineering automation with a private LLM, workflow agents, MCP servers and skills, warehouses, lakehouses, AI harness and fine-tuning, and analytical dashboards."
     ]
   },
   {
