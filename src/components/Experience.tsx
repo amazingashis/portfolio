@@ -1,8 +1,34 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { ArrowUpRight } from "lucide-react";
 
-const experiences = [
+type ExperienceItem = {
+  id: number;
+  role: string;
+  company: string;
+  /** Optional company website, rendered as an external link */
+  url?: string;
+  location: string;
+  date: string;
+  details: string[];
+};
+
+const experiences: ExperienceItem[] = [
+  {
+    id: 0,
+    role: "Founder & Engineering Lead",
+    company: "YoursSherpa",
+    url: "https://yourssherpa.com",
+    location: "Remote",
+    date: "2026 - Present",
+    details: [
+      "Founded a forward-deployed engineering practice that builds data platforms and AI agents inside client teams, in the client's own cloud.",
+      "Set the delivery approach: deterministic code where the rules are clear, AI agents only where work needs reading or judgment, and human approval for anything that sends, pays or commits.",
+      "Built eight reference architectures: RAG and agentic RAG, data engineering automation with a private LLM, workflow agents, MCP servers and skills, warehouses, lakehouses, AI harness and fine-tuning, and analytical dashboards.",
+      "Designed each to run on Databricks, AWS, Azure, Google Cloud, Snowflake or private cloud, with models on private endpoints or open-weight models served with vLLM."
+    ]
+  },
   {
     id: 1,
     role: "Senior Software Engineer",
@@ -92,7 +118,21 @@ export default function Experience() {
                 <h3 className="text-2xl font-bold text-white">{exp.role}</h3>
                 <span className="text-gray-400 font-medium text-sm mt-2 md:mt-0 block md:inline">{exp.date}</span>
               </div>
-              <p className="text-lg text-cyan-400 font-medium mb-4">{exp.company} <span className="text-gray-500 text-sm ml-2">{exp.location}</span></p>
+              <p className="text-lg text-cyan-400 font-medium mb-4">
+                {exp.url ? (
+                  <a
+                    href={exp.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 hover:text-cyan-300 underline-offset-4 hover:underline"
+                  >
+                    {exp.company} <ArrowUpRight className="w-4 h-4" />
+                  </a>
+                ) : (
+                  exp.company
+                )}{" "}
+                <span className="text-gray-500 text-sm ml-2">{exp.location}</span>
+              </p>
               <ul className="list-disc list-inside text-gray-300 space-y-2">
                 {exp.details.map((detail, idx) => (
                   <li key={idx} className="leading-relaxed">{detail}</li>

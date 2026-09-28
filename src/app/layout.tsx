@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Ashish Adhikari | Data Engineer & AI Researcher",
-  description: "Portfolio of Ashish Adhikari — Data Engineer, AI Researcher, and Certified Databricks Professional.",
+  description: "Portfolio of Ashish Adhikari — Data Engineer, AI Researcher, Certified Databricks Professional, and founder of YoursSherpa.",
 };
 
 export default function RootLayout({

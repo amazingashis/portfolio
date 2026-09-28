@@ -27,7 +27,8 @@ portfolio/
 │       ├── Navbar.tsx      # Main navigation
 │       ├── Overlay.tsx     # Content overlay for scrollytelling
 │       ├── Projects.tsx    
-│       └── ScrollyCanvas.tsx # Canvas component for sequence animation
+│       ├── ScrollyCanvas.tsx # Canvas component for sequence animation
+│       └── YoursSherpa.tsx # Featured section for YoursSherpa (yourssherpa.com)
 ├── package.json            # Dependencies: Next.js 16.2.4, React 19.2.4, Framer Motion, Tailwind v4
 ├── tsconfig.json           # TypeScript configuration
 ├── postcss.config.mjs      # PostCSS config
@@ -47,6 +48,7 @@ graph TD
     
     Home --> ScrollyCanvas[src/components/ScrollyCanvas.tsx]
     Home --> Overlay[src/components/Overlay.tsx]
+    Home --> YoursSherpa[src/components/YoursSherpa.tsx]
     
     Overlay --> Experience[src/components/Experience.tsx]
     Overlay --> Projects[src/components/Projects.tsx]
